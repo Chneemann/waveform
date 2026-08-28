@@ -7,6 +7,8 @@
   --color-accent: hsl(235 86% 65%);
   --color-accent-hover: hsl(235 86% 58%);
 
+  --color-destructive: hsl(0 84% 60%);
+
   --color-foreground: hsl(210 11% 93%);
   --color-muted: hsl(215 8% 55%);
 

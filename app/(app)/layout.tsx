@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useSidebarStore } from "@/lib/store/useSidebarStore";
+import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { ServerSidebar } from "@/components/sidebar/ServerSidebar";
 import { ChannelSidebar } from "@/components/sidebar/ChannelSidebar";
 import { MemberSidebar } from "@/components/sidebar/MemberSidebar";

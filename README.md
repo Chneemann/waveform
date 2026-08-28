@@ -27,8 +27,10 @@ The project uses Next.js Route Groups without a `src/` directory to maintain a c
 - `components/` — Modular UI components (Chat, Navigation, Sidebars)
 - `db/` — Database schema definitions, migrations, and Drizzle configuration (`drizzle.config.ts`)
 - `lib/` — Centralized core logic folder containing:
-  - `store/` — State management stores
+  - `stores/` — State management stores
+  - `schemas/` — Zod validation schemas
   - `types/` — Global TypeScript interfaces and type definitions
+  - `services/` — Business logic layers and external API integration services
 - `public/` — Static assets (images, icons, fonts)
 
 ## 🎯 Current Status

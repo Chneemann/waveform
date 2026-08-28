@@ -6,7 +6,7 @@
 "use client";
 
 import { Menu, Hash, Users } from "lucide-react";
-import { useSidebarStore } from "@/lib/store/useSidebarStore";
+import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 
 /**
  * Renders the top navigation header for the chat view, providing toggle triggers for mobile navigation and member list sidebars.

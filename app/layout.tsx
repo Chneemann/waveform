@@ -3,6 +3,7 @@
  * @description Root layout component that wraps the entire application, providing global CSS styles, base HTML structure, and page metadata.
  */
 
+import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 
 /**
@@ -27,7 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }

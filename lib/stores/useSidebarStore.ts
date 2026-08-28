@@ -1,5 +1,5 @@
 /**
- * @file lib/store/useSidebarStore.ts
+ * @file lib/stores/useSidebarStore.ts
  * @description Condition state management store for controlling the visibility and mutual exclusion of navigation and members sidebars.
  */
 
