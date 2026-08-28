@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(200 6% 10%);
+  --color-foreground: hsl(210 5% 86%);
+
+  --color-accent: hsl(235 86% 65%);
+
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 1rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
