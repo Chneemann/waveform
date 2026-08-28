@@ -1,10 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(200 6% 10%);
-  --color-foreground: hsl(210 5% 86%);
+  --color-background: hsl(220 13% 13%);
+  --color-surface: hsl(223 13% 10%);
 
   --color-accent: hsl(235 86% 65%);
+  --color-accent-hover: hsl(235 86% 58%);
+
+  --color-foreground: hsl(210 11% 93%);
+  --color-muted: hsl(215 8% 55%);
 
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,

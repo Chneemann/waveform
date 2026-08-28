@@ -1,33 +1,28 @@
 /**
  * @file app/(app)/page.tsx
- * @description Welcome page component displayed as the initial landing screen of the Waveform application.
+ * @description Main dashboard page displaying the primary chat view with header, message area, and input control.
  */
 
-import Image from "next/image";
+import { ChatHeader } from "@/components/chat/ChatHeader";
+import { ChatInput } from "@/components/chat/ChatInput";
 
 /**
- * Renders the welcome page featuring the Waveform logo, main heading, and confirmation text.
+ * Renders the main application dashboard containing the general chat interface.
  *
- * @returns {JSX.Element} The rendered welcome page component.
+ * @returns {Promise<JSX.Element>} The rendered application dashboard page.
  */
-export default function WelcomePage() {
+export default async function ApplicationDashboardPage() {
   return (
-    <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-      <div className="mb-6 relative w-24 h-24">
-        <Image
-          src="/logo.png"
-          alt="Waveform Logo"
-          fill
-          className="object-contain"
-          priority
-        />
+    <main className="flex-1 flex flex-col h-full min-w-0 bg-background">
+      <ChatHeader />
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
+          This is the beginning of the #general channel.
+        </div>
       </div>
-      <h1 className="text-4xl font-extrabold tracking-tight text-accent mb-2">
-        Waveform
-      </h1>
-      <p className="max-w-md">
-        The basic framework has been successfully set up!
-      </p>
+
+      <ChatInput />
     </main>
   );
 }
