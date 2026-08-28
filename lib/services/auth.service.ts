@@ -1,10 +1,35 @@
 /**
  * @file app/lib/services/auth.service.ts
- * @description Authentication service providing helper functions for sign-in, and registration.
+ * @description Authentication service providing helper functions for guest credentials, sign-in, and registration.
  */
 
 import { loginSchema, registerSchema } from "@/lib/schemas/auth.schema";
 import { signIn } from "next-auth/react";
+
+/**
+ * Triggers guest authentication securely via the backend API route.
+ *
+ * @async
+ * @returns {Promise<{ success?: boolean; error?: string }>} An object indicating success or describing the error.
+ */
+export async function loginAsGuest() {
+  try {
+    const response = await fetch("/api/auth/guest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { error: data.error || "Guest login failed." };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { error: "Server error: API endpoint not available" };
+  }
+}
 
 /**
  * Authenticates a user using email and password credentials, performing client-side validation first.

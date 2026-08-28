@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { loginUser } from "@/lib/services/auth.service";
+import { loginAsGuest, loginUser } from "@/lib/services/auth.service";
 
 /**
  * Renders the user login interface and manages authentication form state.
@@ -19,7 +19,9 @@ import { loginUser } from "@/lib/services/auth.service";
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loadingType, setLoadingType] = useState<
+    "credentials" | "guest" | null
+  >(null);
 
   /**
    * Form submit handler extracting credentials from FormData and delegating to handleSignIn.
@@ -31,27 +33,49 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    await handleSignIn(email, password);
+    await handleSignIn(email, password, "credentials");
   };
 
   /**
    * Authenticates the user with provided credentials and redirects upon success.
    *
-   * @param {string} email - The user's email address.
-   * @param {string} password - The user's password.
    */
-  const handleSignIn = async (email: string, password: string) => {
+  const handleSignIn = async (
+    email: string,
+    password: string,
+    type: "credentials" | "guest",
+  ) => {
     setError(null);
-    setLoading(true);
+    setLoadingType(type);
 
     const result = await loginUser(email, password);
 
     if (result.error) {
       setError(result.error);
-      setLoading(false);
+      setLoadingType(null);
     } else {
       router.push("/");
     }
+  };
+
+  /**
+   * Triggers secure guest authentication via the backend service.
+   *
+   * @async
+   */
+  const handleGuestLogin = async () => {
+    setError(null);
+    setLoadingType("guest");
+
+    const result = await loginAsGuest();
+
+    if (result.error) {
+      setError(result.error);
+      setLoadingType(null);
+      return;
+    }
+
+    router.push("/");
   };
 
   return (
@@ -121,12 +145,29 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loadingType !== null}
             className="w-full bg-accent hover:opacity-90 transition-opacity text-white font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer"
           >
-            {loading ? "Sign In..." : "Sign In"}
+            {loadingType === "credentials" ? "Signing in..." : "Sign In"}{" "}
           </button>
         </form>
+
+        <div className="relative flex items-center pt-4 pb-2">
+          <div className="grow border-t border-neutral-800"></div>
+          <span className="shrink mx-4 text-xs text-muted uppercase">or</span>
+          <div className="grow border-t border-neutral-800"></div>
+        </div>
+
+        <button
+          type="button"
+          disabled={loadingType !== null}
+          onClick={handleGuestLogin}
+          className="w-full bg-transparent hover:bg-accent/10 text-accent border border-accent/40 hover:border-accent transition-all font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer"
+        >
+          {loadingType === "guest"
+            ? "Signing in as Guest..."
+            : "Sign in as Guest"}
+        </button>
 
         {/* Footer Link */}
         <p className="text-xs text-neutral-400 text-center mt-6">

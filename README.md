@@ -23,6 +23,7 @@ A modern, high-performance real-time chat application, designed for seamless com
 The project uses Next.js Route Groups without a `src/` directory to maintain a clean root layout:
 
 - `app/(app)/` — Application routes (Layout, Home, Components)
+- `app/(auth)/` — Public authentication routes (Login, Register)
 - `app/api/` — Backend API endpoints & Auth handlers (`[...nextauth]`)
 - `components/` — Modular UI components (Chat, Navigation, Sidebars)
 - `db/` — Database schema definitions, migrations, and Drizzle configuration (`drizzle.config.ts`)
