@@ -3,7 +3,7 @@
  * @description Page component for viewing a specific channel and its messages.
  */
 
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatMessages } from "@/components/chat/ChatMessages";
@@ -24,13 +24,13 @@ export default async function ChannelPage({
 }) {
   const { channelId } = await params;
 
-  // Paralleles Laden von Kanal-Daten und Nachrichten
+  // Parallel loading of channel data and messages
   const [channel, channelMessages] = await Promise.all([
     getChannelById(channelId),
     getChannelMessages(channelId),
   ]);
 
-  if (!channel) return notFound();
+  if (!channel) redirect("/");
 
   return (
     <div className="flex p-4 flex-col h-full bg-background">
