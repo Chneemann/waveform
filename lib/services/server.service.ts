@@ -4,7 +4,7 @@
  */
 
 import { db } from "@/db";
-import { members, servers } from "@/db/schema";
+import { members, servers, channels } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
@@ -80,5 +80,28 @@ export async function getUserServers(userId: string) {
   } catch (error) {
     console.error(`Error fetching servers for user ${userId}:`, error);
     return [];
+  }
+}
+
+/**
+ * Retrieves a single server by its ID without checking membership.
+ *
+ * @param {string} serverId - The unique identifier of the server to retrieve.
+ * @returns {Promise<Object | null>} The server record or null if not found/invalid ID.
+ */
+export async function getServerById(serverId: string) {
+  if (!uuidSchema.safeParse(serverId).success) {
+    return null;
+  }
+
+  try {
+    const server = await db.query.servers.findFirst({
+      where: eq(servers.id, serverId),
+    });
+
+    return server ?? null;
+  } catch (error) {
+    console.error(`Error fetching server by ID ${serverId}:`, error);
+    return null;
   }
 }

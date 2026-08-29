@@ -6,7 +6,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import {
   SERVER_COLOR_CLASSES,
@@ -32,7 +31,6 @@ interface CreateServerModalProps {
  * @returns {JSX.Element | null} The rendered modal component or null when hidden.
  */
 export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [color, setColor] = useState("bg-indigo-500");
   const [isLoading, setIsLoading] = useState(false);
@@ -83,15 +81,15 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
   };
 
   return (
-    /* Outer Backdrop: Schließt das Modal bei Klick */
+    /* Outer Backdrop */
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 cursor-pointer"
+      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
     >
-      {/* Inner Modal Content: Verhindert Event-Bubbling, damit Klicks hier drinnen das Modal NICHT schließen */}
+      {/* Inner Modal Content */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-surface border border-surface/50 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 cursor-default"
+        className="bg-surface border border-surface/50 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150"
       >
         <button
           type="button"

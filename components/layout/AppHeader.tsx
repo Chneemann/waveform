@@ -7,6 +7,7 @@
 
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { PanelLeftOpen, PanelLeftClose, Users, Hash } from "lucide-react";
+import { ServerSettingsMenu } from "./ServerSettingsMenu";
 
 /**
  * Properties for the AppHeader component.
@@ -14,27 +15,34 @@ import { PanelLeftOpen, PanelLeftClose, Users, Hash } from "lucide-react";
  * @interface AppHeaderProps
  * @property {string} [title] - Optional channel or page title to display in the header.
  * @property {boolean} [showMembersButton=false] - Flag indicating whether to display the member list toggle button.
+ * @property {{ id: string; name: string }} [server] - Optional server details to enable server settings & delete functionality.
  */
 interface AppHeaderProps {
   title?: string;
   showMembersButton?: boolean;
+  server?: {
+    id: string;
+    name: string;
+  };
 }
 
 /**
- * Renders the application header bar with navigation controls, dynamic page titles, and member list toggle capability.
+ * Renders the application header bar with navigation controls, dynamic page titles, server settings, and member list toggle capability.
  *
  * @param {AppHeaderProps} props - The component props.
  * @param {string} [props.title] - Optional channel or page title to display.
  * @param {boolean} [props.showMembersButton=false] - Whether to show the button toggling the right sidebar/member panel.
+ * @param {{ id: string; name: string }} [props.server] - Optional server object containing id and name for settings menu.
  * @returns {JSX.Element} The header component visual structure.
  */
 export function AppHeader({
   title,
   showMembersButton = false,
+  server,
 }: AppHeaderProps) {
   const { isNavOpen, toggleNav, toggleMembers } = useSidebarStore();
 
-  const hasContent = !isNavOpen || !!title || showMembersButton;
+  const hasContent = !isNavOpen || !!title || showMembersButton || !!server;
 
   return (
     <div
@@ -68,17 +76,25 @@ export function AppHeader({
         )}
       </div>
 
-      {/* Button for the member bar */}
-      {showMembersButton && (
-        <button
-          type="button"
-          onClick={toggleMembers}
-          title="Mitgliederliste umschalten"
-          className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
-        >
-          <Users className="w-5 h-5" />
-        </button>
-      )}
+      {/* Right Action Buttons */}
+      <div className="flex items-center gap-1">
+        {/* Server Settings Menu (contains the Delete Server action) */}
+        {server && (
+          <ServerSettingsMenu serverId={server.id} serverName={server.name} />
+        )}
+
+        {/* Button for the member bar */}
+        {showMembersButton && (
+          <button
+            type="button"
+            onClick={toggleMembers}
+            title="Toggle Member List"
+            className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
+          >
+            <Users className="w-5 h-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
