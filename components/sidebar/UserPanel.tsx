@@ -1,6 +1,6 @@
 /**
- * @file components/sidebar/UserProfile.tsx
- * @description User profile component displaying current session info, status, settings, and logout action.
+ * @file components/sidebar/UserPanel.tsx
+ * @description Client component providing a footer user panel with session information, avatar display, online status, and settings/logout actions.
  */
 
 "use client";
@@ -9,13 +9,16 @@ import { LogOut, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
 /**
- * Renders the user profile card with user information, online status, settings, and logout trigger.
+ * Renders the user panel footer component showing current session profile details and authentication controls.
  *
- * @returns {JSX.Element} The rendered user profile footer element.
+ * @returns {JSX.Element} The rendered user panel component.
  */
-export function UserProfile() {
+export function UserPanel() {
   const { data: session } = useSession();
 
+  /**
+   * Triggers the NextAuth sign-out procedure and redirects the user to the login page.
+   */
   const handleLogout = () => {
     signOut({ callbackUrl: "/login" });
   };

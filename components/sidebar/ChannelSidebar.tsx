@@ -1,39 +1,88 @@
 /**
  * @file components/sidebar/ChannelSidebar.tsx
- * @description Sidebar component for server navigation, rendering channel lists.
+ * @description Sidebar component listing channels for the active server, or rendering direct messages when no server is active.
  */
 
-import { Hash } from "lucide-react";
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useActiveServer } from "@/lib/context/ServerContext";
+import { DirectMessageSidebar } from "@/components/sidebar/DirectMessageSidebar";
+import { useSidebarStore } from "@/lib/stores/useSidebarStore";
+import { PanelLeftClose } from "lucide-react";
 
 /**
- * Navigation sidebar displaying server details and text channels.
+ * Renders the channel sidebar for the active server or defaults to the direct message view.
+ * Handles responsive sidebar toggling and highlights active channels based on URL parameters.
  *
- * @returns {JSX.Element} The rendered channel sidebar element.
+ * @returns {JSX.Element} The rendered channel sidebar or direct message sidebar component.
  */
 export function ChannelSidebar() {
-  return (
-    <aside className="w-60 bg-surface flex flex-col border-r border-background shrink-0 h-full">
-      <header className="h-12 border-b border-background flex items-center px-4 font-semibold text-foreground shrink-0">
-        Waveform Community
-      </header>
+  const params = useParams();
+  const currentChannelId = params?.channelId as string;
+  const { activeServer } = useActiveServer();
+  const { closeNav, toggleNav } = useSidebarStore();
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        <div>
-          <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 px-2">
-            Text Channels
-          </h2>
-          <nav className="space-y-0.5">
-            <button className="w-full text-left px-2 py-1.5 rounded text-muted hover:bg-background hover:text-foreground font-medium text-sm flex items-center gap-2 transition-colors cursor-pointer">
-              <Hash className="w-4 h-4 text-muted shrink-0" />
-              <span className="truncate">general</span>
-            </button>
-            <button className="w-full text-left px-2 py-1.5 rounded text-muted hover:bg-background hover:text-foreground font-medium text-sm flex items-center gap-2 transition-colors cursor-pointer">
-              <Hash className="w-4 h-4 text-muted shrink-0" />
-              <span className="truncate">dev-talk</span>
-            </button>
-          </nav>
+  /**
+   * Closes the mobile navigation drawer when a channel link is selected on viewports smaller than 768px.
+   */
+  const handleChannelClick = () => {
+    if (!window.matchMedia("(min-width: 768px)").matches) {
+      closeNav();
+    }
+  };
+
+  if (!activeServer) {
+    return <DirectMessageSidebar />;
+  }
+
+  return (
+    <div className="flex-1 w-full md:w-72 bg-surface/50 border-r border-background flex flex-col h-full shrink-0">
+      {/* Server Header */}
+      <div className="h-14 border-b border-background flex items-center justify-between px-4 font-bold text-white shadow-sm">
+        <span className="truncate">{activeServer.name}</span>
+        <button
+          type="button"
+          onClick={toggleNav}
+          title="Collapse the sidebar"
+          className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
+        >
+          <PanelLeftClose className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Channel List */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <div className="flex items-center justify-between text-xs font-semibold text-muted px-2 py-1 uppercase tracking-wider">
+          <span>Text Channels</span>
+        </div>
+
+        <div className="space-y-0.5">
+          {activeServer.channels.map((channel) => {
+            const isActive = currentChannelId === channel.id;
+
+            return (
+              <Link
+                key={channel.id}
+                href={`/servers/${activeServer.id}/channels/${channel.id}`}
+                onClick={handleChannelClick}
+                prefetch={false}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all group ${
+                  isActive
+                    ? "bg-accent/50 text-white font-medium"
+                    : "text-muted hover:bg-surface hover:text-white"
+                }`}
+              >
+                <span className="text-muted group-hover:text-white text-base">
+                  #
+                </span>
+                <span className="truncate">{channel.name}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

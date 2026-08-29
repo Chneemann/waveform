@@ -1,57 +1,43 @@
 /**
  * @file app/(app)/layout.tsx
- * @description Main application layout component that manages responsive sidebars and drawer overlays.
+ * @description Root application layout wrapping sidebars and main workspace content within the ServerProvider context.
  */
 
-"use client";
-
-import { useSidebarStore } from "@/lib/stores/useSidebarStore";
-import { ServerSidebar } from "@/components/sidebar/ServerSidebar";
-import { ChannelSidebar } from "@/components/sidebar/ChannelSidebar";
-import { MemberSidebar } from "@/components/sidebar/MemberSidebar";
-import { UserProfile } from "@/components/sidebar/UserProfile";
-import { MobileDrawer } from "@/components/ui/MobileDrawer";
+import { auth } from "@/auth";
+import { getUserServers } from "@/lib/services/server.service";
+import { AppSidebar } from "@/components/layout/AppSidebar";
+import { MemberDrawer } from "@/components/layout/MemberDrawer";
+import { ServerProvider } from "@/lib/context/ServerContext";
+import { redirect } from "next/navigation";
 
 /**
- * Client component serving as the primary application layout, handling the server, channel, and member sidebars with mobile drawer support.
+ * Server component layout wrapper for authenticated application views.
+ * Handles session verification, fetches user servers, and renders global layout components.
  *
  * @param {Object} props - The component props.
- * @param {React.ReactNode} props.children - The child layout or page content to render in the central main view.
- * @returns {JSX.Element} The application layout structure with responsive sidebars.
+ * @param {React.ReactNode} props.children - The child page content to render inside the main viewport layout.
+ * @returns {Promise<JSX.Element>} The rendered application layout hierarchy with provider contexts.
  */
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isNavOpen, isMembersOpen, closeAll } = useSidebarStore();
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const userServers = await getUserServers(session.user.id);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
-      {/* Left Navigation: Server + Channels + User Profile */}
-      <MobileDrawer
-        isOpen={isNavOpen}
-        onClose={closeAll}
-        side="left"
-        breakpoint="md"
-      >
-        <div className="flex flex-col h-full shrink-0">
-          <div className="flex flex-1 min-h-0">
-            <ServerSidebar />
-            <ChannelSidebar />
-          </div>
-          <UserProfile />
-        </div>
-      </MobileDrawer>
-
-      {/* Center: Main Area */}
-      <div className="flex-1 flex min-w-0">{children}</div>
-
-      {/* Right: List of Members */}
-      <MobileDrawer
-        isOpen={isMembersOpen}
-        onClose={closeAll}
-        side="right"
-        breakpoint="xl"
-      >
-        <MemberSidebar />
-      </MobileDrawer>
-    </div>
+    <ServerProvider>
+      <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+        <AppSidebar servers={userServers} />
+        <div className="flex-1 flex min-w-0">{children}</div>
+        <MemberDrawer />
+      </div>
+    </ServerProvider>
   );
 }

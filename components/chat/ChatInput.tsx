@@ -10,7 +10,7 @@
  */
 export function ChatInput() {
   return (
-    <div className="p-3 md:p-4 bg-background shrink-0">
+    <div className=" bg-background shrink-0">
       <div className="bg-surface border border-surface rounded-lg p-2.5 flex items-center focus-within:ring-1 focus-within:ring-accent transition-all">
         <input
           type="text"

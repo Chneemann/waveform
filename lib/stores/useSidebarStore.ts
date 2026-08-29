@@ -1,6 +1,6 @@
 /**
  * @file lib/stores/useSidebarStore.ts
- * @description Condition state management store for controlling the visibility and mutual exclusion of navigation and members sidebars.
+ * @description State management store using Zustand for controlling the visibility of navigation and members sidebars.
  */
 
 import { create } from "zustand";
@@ -11,8 +11,10 @@ import { create } from "zustand";
  * @interface SidebarState
  * @property {boolean} isNavOpen - Indicates whether the navigation sidebar is open.
  * @property {boolean} isMembersOpen - Indicates whether the members list sidebar is open.
- * @property {() => void} toggleNav - Toggles the navigation sidebar while automatically closing the members sidebar.
- * @property {() => void} toggleMembers - Toggles the members sidebar while automatically closing the navigation sidebar.
+ * @property {() => void} toggleNav - Toggles the visibility of the navigation sidebar.
+ * @property {() => void} toggleMembers - Toggles the visibility of the members list sidebar.
+ * @property {() => void} closeNav - Explicitly closes the navigation sidebar.
+ * @property {() => void} closeMembers - Explicitly closes the members list sidebar.
  * @property {() => void} closeAll - Closes both the navigation and members sidebars simultaneously.
  */
 interface SidebarState {
@@ -20,20 +22,23 @@ interface SidebarState {
   isMembersOpen: boolean;
   toggleNav: () => void;
   toggleMembers: () => void;
+  closeNav: () => void;
+  closeMembers: () => void;
   closeAll: () => void;
 }
 
 /**
- * Custom Condition hook for managing global sidebar visibility states.
+ * Custom Zustand hook for managing global sidebar visibility states.
  *
  * @returns {SidebarState} The current sidebar state and action handlers.
  */
 export const useSidebarStore = create<SidebarState>((set) => ({
-  isNavOpen: false,
+  isNavOpen: true,
   isMembersOpen: false,
-  toggleNav: () =>
-    set((state) => ({ isNavOpen: !state.isNavOpen, isMembersOpen: false })),
+  toggleNav: () => set((state) => ({ isNavOpen: !state.isNavOpen })),
   toggleMembers: () =>
-    set((state) => ({ isMembersOpen: !state.isMembersOpen, isNavOpen: false })),
+    set((state) => ({ isMembersOpen: !state.isMembersOpen })),
+  closeNav: () => set({ isNavOpen: false }),
+  closeMembers: () => set({ isMembersOpen: false }),
   closeAll: () => set({ isNavOpen: false, isMembersOpen: false }),
 }));
