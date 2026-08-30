@@ -47,7 +47,11 @@ export default async function ChannelPage({
       <ChatMessages channelName={channel.name} messages={channelMessages} />
 
       {/* Input Field */}
-      <ChatInput />
+      <ChatInput
+        serverId={server.id}
+        channelId={channel.id}
+        channelName={channel.name}
+      />
     </div>
   );
 }
