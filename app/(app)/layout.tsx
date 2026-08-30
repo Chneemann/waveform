@@ -6,7 +6,7 @@
 import { auth } from "@/auth";
 import { getUserServers } from "@/lib/services/server.service";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { MemberDrawer } from "@/components/layout/MemberDrawer";
+import { MemberSidebar } from "@/components/layout/MemberSidebar";
 import { ServerProvider } from "@/lib/context/ServerContext";
 import { redirect } from "next/navigation";
 
@@ -36,7 +36,7 @@ export default async function AppLayout({
       <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
         <AppSidebar servers={userServers} />
         <div className="flex-1 flex min-w-0">{children}</div>
-        <MemberDrawer />
+        <MemberSidebar />
       </div>
     </ServerProvider>
   );

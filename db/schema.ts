@@ -22,6 +22,16 @@ import {
  */
 export const roleEnum = pgEnum("role", ["OWNER", "ADMIN", "MEMBER"]);
 
+/**
+ * Enum representing online status of a user.
+ */
+export const userStatusEnum = pgEnum("user_status", [
+  "ONLINE",
+  "OFFLINE",
+  "IDLE",
+  "DND",
+]);
+
 // ==========================================
 // Tables
 // ==========================================
@@ -35,6 +45,8 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   password: text("password").notNull(),
   color: varchar("color", { length: 50 }).default("bg-indigo-500").notNull(),
+  status: userStatusEnum("status").default("OFFLINE").notNull(),
+  lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -160,3 +172,4 @@ export type Server = typeof servers.$inferSelect;
 export type Member = typeof members.$inferSelect;
 export type Channel = typeof channels.$inferSelect;
 export type Message = typeof messages.$inferSelect;
+export type UserStatus = (typeof userStatusEnum.enumValues)[number];
