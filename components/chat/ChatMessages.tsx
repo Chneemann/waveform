@@ -13,19 +13,28 @@ import { ChatItem, type MessageWithMember } from "./ChatItem";
  * @interface ChatMessagesProps
  * @property {string} channelName - The name of the active chat channel to display in the header greeting.
  * @property {MessageWithMember[]} messages - Array of message objects, each containing message details and associated member information.
+ * @property {string} [currentUserId] - The unique identifier of the currently logged-in user.
  */
 interface ChatMessagesProps {
   channelName: string;
   messages: MessageWithMember[];
+  currentUserId?: string;
 }
 
 /**
  * Renders the scrollable message list along with a welcoming channel header.
  *
  * @param {ChatMessagesProps} props - The component props.
+ * @param {string} props.channelName - The name of the active chat channel to display in the header greeting.
+ * @param {MessageWithMember[]} props.messages - Array of message objects, each containing message details and associated member information.
+ * @param {string} [props.currentUserId] - The unique identifier of the currently logged-in user.
  * @returns {JSX.Element} The rendered chat messages container.
  */
-export function ChatMessages({ channelName, messages }: ChatMessagesProps) {
+export function ChatMessages({
+  channelName,
+  messages,
+  currentUserId,
+}: ChatMessagesProps) {
   return (
     <div className="flex-1 overflow-y-auto flex flex-col justify-end">
       <div className="mb-4 border-b border-surface/50">
@@ -39,7 +48,11 @@ export function ChatMessages({ channelName, messages }: ChatMessagesProps) {
 
       <div className="space-y-1 mb-4">
         {messages.map((message) => (
-          <ChatItem key={message.id} message={message} />
+          <ChatItem
+            key={message.id}
+            message={message}
+            currentUserId={currentUserId}
+          />
         ))}
       </div>
     </div>

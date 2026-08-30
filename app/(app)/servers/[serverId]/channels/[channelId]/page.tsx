@@ -3,6 +3,7 @@
  * @description Dynamic page component for displaying a specific channel within a server, including its messages and chat input.
  */
 
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -14,6 +15,7 @@ import { getServerById } from "@/lib/services/server.service";
 /**
  * Renders the channel view by fetching server, channel, and message details in parallel based on route parameters.
  *
+ * @async
  * @param {Object} props - The component props.
  * @param {Promise<{ serverId: string; channelId: string }>} props.params - A promise resolving to the route parameters containing serverId and channelId.
  * @returns {Promise<JSX.Element>} The rendered channel page interface.
@@ -23,6 +25,7 @@ export default async function ChannelPage({
 }: {
   params: Promise<{ serverId: string; channelId: string }>;
 }) {
+  const session = await auth();
   const { serverId, channelId } = await params;
 
   // Parallel loading of server, channel, and messages
@@ -44,7 +47,11 @@ export default async function ChannelPage({
       />
 
       {/* Messages Feed */}
-      <ChatMessages channelName={channel.name} messages={channelMessages} />
+      <ChatMessages
+        channelName={channel.name}
+        messages={channelMessages}
+        currentUserId={session?.user?.id}
+      />
 
       {/* Input Field */}
       <ChatInput
