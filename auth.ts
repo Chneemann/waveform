@@ -51,9 +51,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         return {
           id: user.id,
-          name: user.username,
+          username: user.username,
           email: user.email,
           color: user.color,
+          status: user.status,
         };
       },
     }),
@@ -70,7 +71,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.username = user.username;
         token.color = user.color;
+        token.status = user.status;
       }
       return token;
     },
@@ -85,7 +88,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
+        session.user.username = token.username as string;
         session.user.color = token.color as string;
+        session.user.status = token.status as any;
       }
       return session;
     },

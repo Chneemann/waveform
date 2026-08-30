@@ -6,6 +6,7 @@
 "use client";
 
 import type { Message, Member, User } from "@/db/schema";
+import { UserAvatar } from "../ui/UserAvatar";
 
 /**
  * Composite message type extending base database Message with populated member and user relation.
@@ -26,7 +27,6 @@ export type MessageWithMember = Message & {
 export function ChatItem({ message }: { message: MessageWithMember }) {
   const user = message.member?.user;
   const fullName = user ? user.username.trim() : "Deleted Member";
-  const initial = user?.username?.charAt(0) || "?";
 
   const formattedTime = new Date(message.createdAt).toLocaleTimeString(
     "de-DE",
@@ -38,14 +38,8 @@ export function ChatItem({ message }: { message: MessageWithMember }) {
 
   return (
     <div className="flex items-start gap-3 group p-2 rounded-xl hover:bg-surface transition-colors">
-      {/* Avatar */}
-      <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white shrink-0 ${
-          user?.color || "bg-indigo-500"
-        }`}
-      >
-        {initial}
-      </div>
+      {/* Avatar Component */}
+      <UserAvatar user={user} size="md" />
 
       {/* Message Header & Content */}
       <div className="flex-1 min-w-0">

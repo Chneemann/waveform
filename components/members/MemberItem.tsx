@@ -4,11 +4,8 @@
  */
 
 import type { UserStatus } from "@/db/schema";
-import {
-  MEMBER_COLOR_CLASSES,
-  MEMBER_STATUS_COLOR_CLASSES,
-} from "@/lib/constants/member.styles";
 import { clsx } from "clsx";
+import { UserAvatar } from "../ui/UserAvatar";
 
 /**
  * Interface representing a member user.
@@ -45,9 +42,6 @@ interface MemberItemProps {
  * @returns {JSX.Element} The rendered member item.
  */
 export function MemberItem({ member, isOffline = false }: MemberItemProps) {
-  const userBg = member.color && MEMBER_COLOR_CLASSES[member.color];
-  const statusBg = MEMBER_STATUS_COLOR_CLASSES[member.status];
-
   return (
     <div
       className={clsx(
@@ -56,23 +50,10 @@ export function MemberItem({ member, isOffline = false }: MemberItemProps) {
       )}
     >
       <div className="relative shrink-0">
-        <div
-          className={clsx(
-            "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white",
-            userBg,
-          )}
-        >
-          {member.username ? member.username.charAt(0).toUpperCase() : "?"}
-        </div>
-        <span
-          className={clsx(
-            "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-surface",
-            statusBg,
-          )}
-        />
+        <UserAvatar user={member} size="md" />
       </div>
       <span className="text-sm font-medium text-muted group-hover:text-white truncate">
-        {member.username || "Unbekannt"}
+        {member.username}
       </span>
     </div>
   );
