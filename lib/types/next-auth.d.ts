@@ -1,31 +1,22 @@
 /**
- * @file lib/types/next-auth.d.ts
- * @description TypeScript module augmentation for NextAuth types to add custom user and session attributes.
+ * Dynamic module declarations extending NextAuth types.
+ *
+ * @module next-auth
  */
 
 import { DefaultSession } from "next-auth";
-import type { UserStatus } from "@/db/schema";
 
 declare module "next-auth" {
   /**
-   * Extends the default NextAuth Session interface to include custom user properties.
+   * Extends the built-in session user interface to include custom properties.
+   *
+   * @interface Session
+   * @property {Object} user - The authenticated user's session details.
+   * @property {string} user.id - The unique database identifier of the user.
    */
   interface Session {
     user: {
       id: string;
-      username: string;
-      color: string;
-      status: UserStatus;
     } & DefaultSession["user"];
-  }
-
-  /**
-   * Extends the default NextAuth User interface to include custom properties.
-   */
-  interface User {
-    id?: string;
-    username?: string;
-    color?: string;
-    status?: UserStatus;
   }
 }

@@ -10,16 +10,42 @@ import { ServerSidebar } from "@/components/sidebar/ServerSidebar";
 import { ChannelSidebar } from "@/components/sidebar/ChannelSidebar";
 import { UserPanel } from "@/components/sidebar/UserPanel";
 import type { ServerWithChannels } from "@/lib/context/ServerContext";
+import type { UserStatus } from "@/db/schema";
 import { clsx } from "clsx";
+
+/**
+ * Properties representing the user in the sidebar.
+ *
+ * @interface SidebarUser
+ * @property {string} username - The display name of the user.
+ * @property {string} color - The custom color assigned to the user's avatar or profile.
+ * @property {UserStatus} status - The current online status of the user.
+ */
+export interface SidebarUser {
+  username: string;
+  color: string;
+  status: UserStatus;
+}
+
+/**
+ * Properties for the AppSidebar component.
+ *
+ * @interface AppSidebarProps
+ * @property {ServerWithChannels[]} servers - List of available servers including their channels.
+ * @property {SidebarUser} user - Information about the currently authenticated user.
+ */
+interface AppSidebarProps {
+  servers: ServerWithChannels[];
+  user: SidebarUser;
+}
 
 /**
  * Renders the responsive application sidebar containing server navigation, channel lists, and user profile.
  *
- * @param {Object} props - The component props.
- * @param {ServerWithChannels[]} props.servers - Array of server objects with channels to display in the server navigation bar.
+ * @param {AppSidebarProps} props - The component props.
  * @returns {JSX.Element} The rendered mobile overlay and responsive sidebar structure.
  */
-export function AppSidebar({ servers }: { servers: ServerWithChannels[] }) {
+export function AppSidebar({ servers, user }: AppSidebarProps) {
   const { isNavOpen, closeAll } = useSidebarStore();
 
   return (
@@ -36,7 +62,7 @@ export function AppSidebar({ servers }: { servers: ServerWithChannels[] }) {
           <ChannelSidebar />
         </div>
         <div className="w-78">
-          <UserPanel />
+          <UserPanel user={user} />
         </div>
       </aside>
 
@@ -58,7 +84,7 @@ export function AppSidebar({ servers }: { servers: ServerWithChannels[] }) {
           <ServerSidebar servers={servers} />
           <ChannelSidebar />
         </div>
-        <UserPanel />
+        <UserPanel user={user} />
       </div>
     </>
   );

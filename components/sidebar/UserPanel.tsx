@@ -6,15 +6,36 @@
 "use client";
 
 import { LogOut, Settings } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { UserStatus } from "@/db/schema";
 
-export function UserPanel() {
-  const { data: session } = useSession();
+/**
+ * Props for the UserPanel component.
+ */
+interface UserPanelProps {
+  /** User details including username, avatar color, and online status. */
+  user: {
+    username: string;
+    color: string;
+    status: UserStatus;
+  };
+}
 
-  if (!session?.user) return null;
-
-  const { user } = session;
+/**
+ * Renders the user panel footer containing the user's avatar, status, and action buttons.
+ *
+ * @param {UserPanelProps} props - Component properties.
+ * @returns {JSX.Element} The rendered user panel component.
+ */
+export function UserPanel({ user }: UserPanelProps) {
+  /**
+   * Handles user logout by invalidating the local session and redirecting to the login page.
+   */
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    await signOut({ callbackUrl: "/login" });
+  };
 
   return (
     <div className="p-2 w-full bg-surface shrink-0">
@@ -47,7 +68,7 @@ export function UserPanel() {
 
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={handleLogout}
             className="p-1.5 text-muted hover:text-red-400 focus:outline-none cursor-pointer transition-colors"
             aria-label="Log Out"
           >
