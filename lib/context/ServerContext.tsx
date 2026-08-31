@@ -39,6 +39,7 @@ export interface ServerMember {
 interface ServerContextType {
   activeServer: ServerWithChannels | null;
   setActiveServer: (server: ServerWithChannels | null) => void;
+  addChannel: (channel: Channel) => void;
   members: ServerMember[];
   setMembers: (members: ServerMember[]) => void;
 }
@@ -46,6 +47,7 @@ interface ServerContextType {
 const ServerContext = createContext<ServerContextType>({
   activeServer: null,
   setActiveServer: () => {},
+  addChannel: () => {},
   members: [],
   setMembers: () => {},
 });
@@ -63,21 +65,31 @@ export function ServerProvider({ children }: { children: React.ReactNode }) {
   );
   const [members, setMembers] = useState<ServerMember[]>([]);
 
+  const addChannel = (channel: Channel) => {
+    setActiveServer((prev) => {
+      if (!prev || prev.id !== channel.serverId) return prev;
+      return {
+        ...prev,
+        channels: [...prev.channels, channel],
+      };
+    });
+  };
+
   return (
     <ServerContext.Provider
-      value={{ activeServer, setActiveServer, members, setMembers }}
+      value={{
+        activeServer,
+        setActiveServer,
+        addChannel,
+        members,
+        setMembers,
+      }}
     >
       {children}
     </ServerContext.Provider>
   );
 }
 
-/**
- * Custom hook to access the current ServerContext state.
- *
- * @throws {Error} Throws an error if used outside of a `ServerProvider`.
- * @returns {ServerContextType} The server context value containing active server state and member management functions.
- */
 export function useActiveServer() {
   const context = useContext(ServerContext);
   if (!context) {
