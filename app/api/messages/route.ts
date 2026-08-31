@@ -58,6 +58,8 @@ export async function POST(req: Request) {
         content: content.trim(),
         channelId,
         memberId: member.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
