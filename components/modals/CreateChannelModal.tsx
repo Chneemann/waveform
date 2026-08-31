@@ -124,6 +124,7 @@ export function CreateChannelModal({
                 type="text"
                 required
                 value={name}
+                maxLength={32}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="new-channel"
                 disabled={isLoading}

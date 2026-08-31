@@ -27,9 +27,17 @@ export async function POST(req: Request) {
 
     const { name, serverId } = await req.json();
 
-    if (!name?.trim() || !serverId) {
+    if (!name || !serverId) {
       return NextResponse.json(
         { error: "Name and server ID are required" },
+        { status: 400 },
+      );
+    }
+
+    // Validate maximum length for channel name
+    if (name.length > 32) {
+      return NextResponse.json(
+        { error: "Channel name cannot exceed 32 characters" },
         { status: 400 },
       );
     }

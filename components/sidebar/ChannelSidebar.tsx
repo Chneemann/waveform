@@ -62,22 +62,22 @@ export function ChannelSidebar() {
 
   return (
     <>
-      <div className="flex-1 w-full md:w-72 bg-surface/50 border-r border-background flex flex-col h-full shrink-0">
+      <div className="flex-1 w-full bg-surface/50 border-r border-background flex flex-col h-full min-w-0 overflow-hidden">
         {/* Server Header */}
-        <div className="h-14 border-b border-background flex items-center justify-between px-4 font-bold text-white shadow-sm">
+        <div className="h-14 border-b border-background flex items-center justify-between px-4 font-bold text-white shadow-sm shrink-0">
           <span className="truncate">{activeServer.name}</span>
           <button
             type="button"
             onClick={toggleNav}
             title="Collapse the sidebar"
-            className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
+            className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer shrink-0"
           >
             <PanelLeftClose className="w-5 h-5" />
           </button>
         </div>
 
         {/* Channel List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 min-w-0">
           <div className="flex items-center justify-between text-xs font-semibold text-muted px-2 py-1 uppercase tracking-wider">
             <span>Text Channels</span>
             <button
@@ -90,7 +90,7 @@ export function ChannelSidebar() {
             </button>
           </div>
 
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 w-full">
             {activeServer.channels.map((channel) => {
               const isActive = currentChannelId === channel.id;
 
@@ -100,14 +100,15 @@ export function ChannelSidebar() {
                   href={`/servers/${activeServer.id}/channels/${channel.id}`}
                   onClick={handleChannelClick}
                   prefetch={false}
-                  className={`flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-all group ${
+                  className={`flex items-center justify-between w-full px-2 py-1.5 rounded-md text-sm transition-all group min-w-0 overflow-hidden ${
                     isActive
                       ? "bg-accent/50 text-white font-medium"
                       : "text-muted hover:bg-surface hover:text-white"
                   }`}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-muted group-hover:text-white text-base">
+                  {/* Text Area */}
+                  <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                    <span className="text-muted group-hover:text-white text-base shrink-0">
                       #
                     </span>
                     <span className="truncate">{channel.name}</span>
@@ -118,7 +119,7 @@ export function ChannelSidebar() {
                     <button
                       type="button"
                       onClick={(e) => handleOpenSettings(e, channel)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-white focus:outline-none transition-all cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-white focus:outline-none transition-all cursor-pointer shrink-0 ml-2"
                       aria-label="Channel Settings"
                       title="Channel Settings"
                     >

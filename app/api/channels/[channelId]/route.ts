@@ -32,9 +32,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!name || !name.trim()) {
+    if (!name) {
       return NextResponse.json(
         { error: "Channel name cannot be empty" },
+        { status: 400 },
+      );
+    }
+
+    // Validate maximum length for channel name
+    if (name.length > 32) {
+      return NextResponse.json(
+        { error: "Channel name cannot exceed 32 characters" },
         { status: 400 },
       );
     }

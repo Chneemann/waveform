@@ -82,16 +82,15 @@ export function EditChannelModal({
       });
 
       if (!response.ok) {
-        throw new Error("Fehler beim Aktualisieren des Channels.");
+        throw new Error("Error updating the channel.");
       }
 
       const updated = await response.json();
       updateChannel(updated);
+      router.refresh();
       onClose();
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Etwas ist schiefgelaufen.",
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +115,7 @@ export function EditChannelModal({
       });
 
       if (!response.ok) {
-        throw new Error("Fehler beim Löschen des Channels.");
+        throw new Error("Error deleting the channel.");
       }
 
       removeChannel(channel.id);
@@ -135,9 +134,7 @@ export function EditChannelModal({
         }
       }
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Etwas ist schiefgelaufen.",
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsDeleting(false);
     }
@@ -179,6 +176,7 @@ export function EditChannelModal({
                 type="text"
                 required
                 value={name}
+                maxLength={32}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="channel-name"
                 disabled={isLoading || isDeleting}

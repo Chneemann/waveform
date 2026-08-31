@@ -85,7 +85,7 @@ export const members = pgTable("members", {
  */
 export const channels = pgTable("channels", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 32 }).notNull(),
   serverId: uuid("server_id")
     .references(() => servers.id, { onDelete: "cascade" })
     .notNull(),
