@@ -49,6 +49,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Channel not found" }, { status: 404 });
     }
 
+    // Protect the default channel from changes
+    if (existingChannel.isDefault) {
+      return NextResponse.json(
+        { error: "The default channel cannot be edited." },
+        { status: 400 },
+      );
+    }
+
     // Check if the user is a member of the server
     const [member] = await db
       .select()
@@ -112,6 +120,14 @@ export async function DELETE(
 
     if (!existingChannel) {
       return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+    }
+
+    // Protect default channel from deletion
+    if (existingChannel.isDefault) {
+      return NextResponse.json(
+        { error: "The default channel cannot be deleted." },
+        { status: 400 },
+      );
     }
 
     // Check if the user is a member of the server

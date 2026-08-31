@@ -5,6 +5,7 @@
 
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   pgEnum,
   pgTable,
   text,
@@ -88,6 +89,7 @@ export const channels = pgTable("channels", {
   serverId: uuid("server_id")
     .references(() => servers.id, { onDelete: "cascade" })
     .notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

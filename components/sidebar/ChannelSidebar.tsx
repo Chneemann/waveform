@@ -114,15 +114,17 @@ export function ChannelSidebar() {
                   </div>
 
                   {/* Gear Button */}
-                  <button
-                    type="button"
-                    onClick={(e) => handleOpenSettings(e, channel)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-white focus:outline-none transition-all cursor-pointer"
-                    aria-label="Channel Settings"
-                    title="Channel Settings"
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                  </button>
+                  {!channel.isDefault && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenSettings(e, channel)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-white focus:outline-none transition-all cursor-pointer"
+                      aria-label="Channel Settings"
+                      title="Channel Settings"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </Link>
               );
             })}

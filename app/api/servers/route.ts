@@ -68,6 +68,7 @@ export async function POST(req: Request) {
         .values({
           name: "general",
           serverId: server.id,
+          isDefault: true,
         })
         .returning();
 
