@@ -1,15 +1,16 @@
 /**
  * @file components/chat/ChatItem.tsx
- * @description Single message row component supporting inline editing, deletion, and user association details.
+ * @description Single message row component supporting editing and deletion functionality.
  */
 
 "use client";
 
-import type { Message, Member, User } from "@/db/schema";
-import { UserAvatar } from "../ui/UserAvatar";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import type { Message, Member, User } from "@/db/schema";
+import { UserAvatar } from "../ui/UserAvatar";
+import { ChatItemActions } from "./ChatItemActions";
+import { ChatItemEdit } from "./ChatItemEdit";
 
 /**
  * Composite message type extending base database Message with populated member and user relation.
@@ -18,7 +19,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
  * @property {string} id - The unique identifier of the message.
  * @property {string} content - The text content of the message.
  * @property {string} createdAt - The timestamp when the message was created.
- * @property {string} [updatedAt] - The timestamp when the message was last updated.
+ * @property {string | null} [updatedAt] - The timestamp when the message was last updated.
  * @property {Member & { user: User }} member - The associated member and user relational data.
  */
 export type MessageWithMember = Message & {
@@ -28,7 +29,7 @@ export type MessageWithMember = Message & {
 };
 
 /**
- * Props for the ChatItem component.
+ * Properties for the ChatItem component.
  *
  * @interface ChatItemProps
  * @property {MessageWithMember} message - The message object containing member and user relational data.
@@ -40,8 +41,7 @@ interface ChatItemProps {
 }
 
 /**
- * Renders an individual chat message row displaying user avatar, sender name, timestamp,
- * edited indicator, and inline editing or deletion capabilities.
+ * Renders an individual chat message row supporting message editing, deletion, and author details.
  *
  * @async
  * @param {ChatItemProps} props - The component props.
@@ -73,11 +73,11 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
   );
 
   /**
-   * Handles the asynchronous deletion of the chat message via API.
+   * Handles the asynchronous deletion of the chat message.
    *
    * @async
    * @function handleDelete
-   * @returns {Promise<void>} Resolves when the deletion completes or fails.
+   * @returns {Promise<void>} Resolves when the deletion process completes or fails.
    */
   const handleDelete = async () => {
     if (isDeleting) return;
@@ -88,10 +88,7 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
         method: "DELETE",
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to delete message");
-      }
-
+      if (!response.ok) throw new Error("Failed to delete message");
       router.refresh();
     } catch (error) {
       console.error("Error deleting the message:", error);
@@ -101,11 +98,11 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
   };
 
   /**
-   * Handles the asynchronous update of the chat message content via API.
+   * Handles the asynchronous update of the chat message content.
    *
    * @async
    * @function handleEdit
-   * @returns {Promise<void>} Resolves when the message update completes or fails.
+   * @returns {Promise<void>} Resolves when the update process completes or fails.
    */
   const handleEdit = async () => {
     if (!content.trim() || isLoading) return;
@@ -118,33 +115,13 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
         body: JSON.stringify({ content }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update message");
-      }
-
+      if (!response.ok) throw new Error("Failed to update message");
       setIsEditing(false);
       router.refresh();
     } catch (error) {
       console.error("Error editing the message:", error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  /**
-   * Handles keyboard events during inline editing (Enter to save, Escape to cancel).
-   *
-   * @function handleKeyDown
-   * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event object.
-   * @returns {void}
-   */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleEdit();
-    } else if (e.key === "Escape") {
-      setIsEditing(false);
-      setContent(message.content);
     }
   };
 
@@ -164,61 +141,26 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
             )}
           </div>
 
-          {/* Action Buttons */}
           {isOwner && !isEditing && (
-            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-all">
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="p-1 text-muted hover:text-foreground focus:outline-none transition-all cursor-pointer shrink-0"
-                aria-label="Edit Message"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="p-1 text-muted hover:text-red-400 focus:outline-none transition-all cursor-pointer shrink-0 disabled:opacity-50"
-                aria-label="Delete message"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <ChatItemActions
+              onEdit={() => setIsEditing(true)}
+              onDelete={handleDelete}
+              isDeleting={isDeleting}
+            />
           )}
         </div>
 
-        {/* Inline Edit Input vs. Regular Content */}
         {isEditing ? (
-          <div className="mt-1 flex items-center gap-2">
-            <input
-              type="text"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isLoading}
-              className="w-full bg-background border border-surface rounded px-2 py-1 text-sm text-foreground outline-none focus:ring-1 focus:ring-accent"
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={handleEdit}
-              disabled={isLoading}
-              className="p-1 text-muted hover:text-foreground cursor-pointer"
-            >
-              <Check className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditing(false);
-                setContent(message.content);
-              }}
-              className="p-1 text-muted hover:text-foreground cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <ChatItemEdit
+            content={content}
+            setContent={setContent}
+            onSave={handleEdit}
+            onCancel={() => {
+              setIsEditing(false);
+              setContent(message.content);
+            }}
+            isLoading={isLoading}
+          />
         ) : (
           <p className="text-foreground text-sm leading-relaxed wrap-break-words mt-0.5">
             {message.content}
