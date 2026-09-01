@@ -56,9 +56,9 @@ export const users = pgTable("users", {
  */
 export const servers = pgTable("servers", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 32 }).notNull(),
   color: varchar("color", { length: 50 }).default("bg-indigo-500").notNull(),
-  inviteCode: text("invite_code").notNull().unique(),
+  inviteCode: varchar("invite_code", { length: 20 }).notNull().unique(),
   ownerId: uuid("owner_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
