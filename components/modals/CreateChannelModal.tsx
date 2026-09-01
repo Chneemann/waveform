@@ -5,10 +5,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import { useActiveServer } from "@/lib/context/ServerContext";
+import { ActionButton } from "../ui/ActionButton";
 
 /**
  * Properties for the CreateChannelModal component.
@@ -46,6 +47,9 @@ export function CreateChannelModal({
   const { addChannel } = useActiveServer();
 
   if (!isOpen) return null;
+
+  const isValid = name.trim().length != 0;
+  const canSave = isValid && !isLoading;
 
   /**
    * Handles form submission to create a new channel via the API.
@@ -137,22 +141,23 @@ export function CreateChannelModal({
           {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
 
           <div className="flex items-center justify-end gap-3 pt-4">
-            <button
+            <ActionButton
               type="button"
+              variant="secondary"
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-muted hover:text-white transition-colors cursor-pointer"
             >
               Cancel
-            </button>
-            <button
+            </ActionButton>
+
+            <ActionButton
               type="submit"
-              disabled={isLoading || !name.trim()}
-              className="px-5 py-2 bg-accent text-white font-medium text-sm rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+              variant="primary"
+              isLoading={isLoading}
+              disabled={!canSave}
             >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Create
-            </button>
+              Save
+            </ActionButton>
           </div>
         </form>
       </div>

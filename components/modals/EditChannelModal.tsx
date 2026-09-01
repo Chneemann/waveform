@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { X, Loader2, Trash2 } from "lucide-react";
 import { useActiveServer } from "@/lib/context/ServerContext";
 import type { Channel } from "@/db/schema";
+import { ActionButton } from "../ui/ActionButton";
 
 /**
  * Properties for the EditChannelModal component.
@@ -189,37 +190,35 @@ export function EditChannelModal({
           {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
 
           <div className="flex items-center justify-between pt-4">
-            <button
+            <ActionButton
               type="button"
+              variant="danger"
               onClick={handleDelete}
-              disabled={isLoading || isDeleting}
-              className="flex items-center gap-1.5 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors cursor-pointer disabled:opacity-50"
+              isLoading={isDeleting}
+              disabled={isLoading}
+              icon={Trash2}
             >
-              {isDeleting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-              Delete Channel
-            </button>
+              Delete Server
+            </ActionButton>
 
-            <div className="flex items-center gap-3">
-              <button
+            <div className="flex items-center gap-2">
+              <ActionButton
                 type="button"
+                variant="secondary"
                 onClick={onClose}
                 disabled={isLoading || isDeleting}
-                className="px-4 py-2 text-sm font-medium text-muted hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
-              </button>
-              <button
+              </ActionButton>
+
+              <ActionButton
                 type="submit"
-                disabled={!canSave}
-                className="px-5 py-2 bg-accent text-white font-medium text-sm rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                variant="primary"
+                isLoading={isLoading}
+                disabled={!canSave || isDeleting}
               >
-                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Save
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
