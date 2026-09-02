@@ -1,6 +1,6 @@
 /**
  * @file db/schema.ts
- * @description Database schema definition file utilizing Drizzle ORM for PostgreSQL. Defines tables, enums, relations, and exported TypeScript types for users, servers, members, channels, and messages.
+ * @description Database schema definition using Drizzle ORM, containing enums, table definitions, relations, and TypeScript type exports for users, servers, members, channels, messages, and friendships.
  */
 
 import { relations } from "drizzle-orm";
@@ -31,6 +31,15 @@ export const userStatusEnum = pgEnum("user_status", [
   "OFFLINE",
   "IDLE",
   "DND",
+]);
+
+/**
+ * Enum representing friendship status between two users.
+ */
+export const friendshipStatusEnum = pgEnum("friendship_status", [
+  "PENDING",
+  "ACCEPTED",
+  "BLOCKED",
 ]);
 
 // ==========================================
@@ -109,6 +118,22 @@ export const messages = pgTable("messages", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+/**
+ * Database table definition for friendships / friend requests between users.
+ */
+export const friendships = pgTable("friendships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  status: friendshipStatusEnum("status").default("PENDING").notNull(),
+  senderId: uuid("sender_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  receiverId: uuid("receiver_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ==========================================
 // Drizzle Relations
 // ==========================================
@@ -118,6 +143,10 @@ export const messages = pgTable("messages", {
  */
 export const usersRelations = relations(users, ({ many }) => ({
   memberships: many(members),
+  sentFriendRequests: many(friendships, { relationName: "sentFriendships" }),
+  receivedFriendRequests: many(friendships, {
+    relationName: "receivedFriendships",
+  }),
 }));
 
 /**
@@ -165,6 +194,22 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+/**
+ * Relational definitions for the friendships table.
+ */
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  sender: one(users, {
+    fields: [friendships.senderId],
+    references: [users.id],
+    relationName: "sentFriendships",
+  }),
+  receiver: one(users, {
+    fields: [friendships.receiverId],
+    references: [users.id],
+    relationName: "receivedFriendships",
+  }),
+}));
+
 // ==========================================
 // Type Exports
 // ==========================================
@@ -175,3 +220,5 @@ export type Member = typeof members.$inferSelect;
 export type Channel = typeof channels.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type UserStatus = (typeof userStatusEnum.enumValues)[number];
+export type Friendship = typeof friendships.$inferSelect;
+export type FriendshipStatus = (typeof friendshipStatusEnum.enumValues)[number];
