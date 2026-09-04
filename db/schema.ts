@@ -1,6 +1,6 @@
 /**
  * @file db/schema.ts
- * @description Database schema definition using Drizzle ORM, containing enums, table definitions, relations, and TypeScript type exports for users, servers, members, channels, messages, and friendships.
+ * @description Database schema definition using Drizzle ORM, containing enums, table definitions, relations, and TypeScript type exports for users, servers, members, channels, messages, conversations, direct messages and friendships.
  */
 
 import { relations } from "drizzle-orm";
@@ -134,6 +134,36 @@ export const friendships = pgTable("friendships", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+/**
+ * Database table definition for direct message conversations between two users.
+ */
+export const conversations = pgTable("conversations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userOneId: uuid("user_one_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  userTwoId: uuid("user_two_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/**
+ * Database table definition for direct messages sent within a conversation.
+ */
+export const directMessages = pgTable("direct_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  content: text("content").notNull(),
+  conversationId: uuid("conversation_id")
+    .references(() => conversations.id, { onDelete: "cascade" })
+    .notNull(),
+  senderId: uuid("sender_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ==========================================
 // Drizzle Relations
 // ==========================================
@@ -147,6 +177,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   receivedFriendRequests: many(friendships, {
     relationName: "receivedFriendships",
   }),
+  conversationsInitiated: many(conversations, {
+    relationName: "userOneConversations",
+  }),
+  conversationsReceived: many(conversations, {
+    relationName: "userTwoConversations",
+  }),
+  directMessages: many(directMessages),
 }));
 
 /**
@@ -210,6 +247,40 @@ export const friendshipsRelations = relations(friendships, ({ one }) => ({
   }),
 }));
 
+/**
+ * Relational definitions for the conversations table.
+ */
+export const conversationsRelations = relations(
+  conversations,
+  ({ one, many }) => ({
+    userOne: one(users, {
+      fields: [conversations.userOneId],
+      references: [users.id],
+      relationName: "userOneConversations",
+    }),
+    userTwo: one(users, {
+      fields: [conversations.userTwoId],
+      references: [users.id],
+      relationName: "userTwoConversations",
+    }),
+    directMessages: many(directMessages),
+  }),
+);
+
+/**
+ * Relational definitions for the directMessages table.
+ */
+export const directMessagesRelations = relations(directMessages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [directMessages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [directMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
 // ==========================================
 // Type Exports
 // ==========================================
@@ -222,3 +293,5 @@ export type Message = typeof messages.$inferSelect;
 export type UserStatus = (typeof userStatusEnum.enumValues)[number];
 export type Friendship = typeof friendships.$inferSelect;
 export type FriendshipStatus = (typeof friendshipStatusEnum.enumValues)[number];
+export type Conversation = typeof conversations.$inferSelect;
+export type DirectMessage = typeof directMessages.$inferSelect;
