@@ -101,6 +101,8 @@ export function FriendsHeader({
           )}
         </button>
 
+        <span className="mx-1"></span>
+
         {/* Add Friend Tab */}
         <ActionButton
           type="button"
@@ -108,8 +110,8 @@ export function FriendsHeader({
           onClick={() => setActiveTab("add")}
           size="sm"
         >
-          <span className="inline md:hidden">Add Friend</span>
-          <span className="hidden md:inline">Add</span>
+          <span className="inline sm:hidden">Add</span>
+          <span className="hidden sm:inline">Add Friend</span>
         </ActionButton>
       </div>
     </nav>

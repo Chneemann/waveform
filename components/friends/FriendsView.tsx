@@ -64,7 +64,7 @@ export interface Friendship {
  * @property {string} currentUserId - The unique identifier of the currently logged-in user.
  * @property {Friendship[]} initialFriendships - Initial list of friendships fetched from the server.
  */
-interface FriendsViewProps {
+export interface FriendsViewProps {
   currentUserId: string;
   initialFriendships: Friendship[];
 }
@@ -169,7 +169,12 @@ export function FriendsView({
 
       {/* Main Tab Content */}
       <div className="flex-1 overflow-y-auto pt-4">
-        {activeTab === "add" && <AddFriendTab />}
+        {activeTab === "add" && (
+          <AddFriendTab
+            currentUserId={currentUserId}
+            initialFriendships={friendships}
+          />
+        )}
 
         {activeTab === "pending" && (
           <PendingRequestsTab

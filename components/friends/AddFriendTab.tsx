@@ -1,46 +1,98 @@
 /**
  * @file components/friends/AddFriendTab.tsx
- * @description Tab component providing a form to send friend requests via username.
+ * @description Tab component allowing users to search for others by username, view live results, and send or track friend requests.
  */
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "../ui/ActionButton";
+import { UserAvatar } from "../ui/UserAvatar";
+import { FriendsViewProps, FriendUser } from "./FriendsView";
 
 /**
- * Renders a form to add new friends by entering their username.
+ * Renders the add friend tab containing the live search input, results list, and request management.
  *
- * @returns {JSX.Element} The rendered add friend tab component.
+ * @param {FriendsViewProps} props - The component props.
+ * @param {string} props.currentUserId - The unique identifier of the currently logged-in user.
+ * @param {Friendship[]} props.initialFriendships - Array of existing friendships.
+ * @returns {JSX.Element} The rendered add friend tab container.
  */
-export function AddFriendTab() {
+export function AddFriendTab({
+  currentUserId,
+  initialFriendships,
+}: FriendsViewProps) {
   const router = useRouter();
   const [addUsername, setAddUsername] = useState("");
+  const [searchResults, setSearchResults] = useState<FriendUser[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [addError, setAddError] = useState("");
   const [addSuccess, setAddSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingUsername, setLoadingUsername] = useState<string | null>(null);
+
+  // Live search as you type, with debounce
+  useEffect(() => {
+    const query = addUsername.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `/api/users/search?q=${encodeURIComponent(query)}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [addUsername]);
 
   /**
-   * Handles the form submission to send a friend request asynchronously.
+   * Checks the friendship status for a specific user ID against the current user.
+   *
+   * @function getFriendshipStatus
+   * @param {string} userId - The unique identifier of the user to check status for.
+   * @returns {string | null} The friendship status string ("PENDING", "ACCEPTED", "BLOCKED") or null if none exists.
+   */
+  const getFriendshipStatus = (userId: string) => {
+    const friendship = initialFriendships.find(
+      (f) =>
+        (f.senderId === userId && f.receiverId === currentUserId) ||
+        (f.receiverId === userId && f.senderId === currentUserId),
+    );
+    return friendship ? friendship.status : null;
+  };
+
+  /**
+   * Sends a friend request to a specified username asynchronously.
    *
    * @async
-   * @function handleSendRequest
-   * @param {React.FormEvent} e - The form submission event.
-   * @returns {Promise<void>} Resolves when the friend request process completes.
+   * @function sendRequestToUser
+   * @param {string} username - The target username to send a friend request to.
+   * @returns {Promise<void>} Resolves when the request completes.
    */
-  const handleSendRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendRequestToUser = async (username: string) => {
     setAddError("");
     setAddSuccess("");
-    if (!addUsername.trim()) return;
+    setLoadingUsername(username);
 
-    setLoading(true);
     try {
       const res = await fetch("/api/friends", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: addUsername }),
+        body: JSON.stringify({ username }),
       });
 
       const data = await res.json();
@@ -48,16 +100,15 @@ export function AddFriendTab() {
       if (!res.ok) {
         setAddError(data.error || "Failed to send request");
       } else {
-        setAddSuccess(
-          `Success! Your friend request to ${addUsername} was sent.`,
-        );
+        setAddSuccess(`Success! Friend request sent to ${username}.`);
         setAddUsername("");
+        setSearchResults([]);
         router.refresh();
       }
     } catch {
       setAddError("Internal server error");
     } finally {
-      setLoading(false);
+      setLoadingUsername(null);
     }
   };
 
@@ -67,32 +118,85 @@ export function AddFriendTab() {
         Add Friend
       </h3>
       <p className="text-xs text-muted mb-4">
-        You can add friends with their username.
+        You can add friends by searching for their username.
       </p>
 
-      <form onSubmit={handleSendRequest} className="space-y-2">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 relative items-stretch sm:items-center bg-surface rounded-lg p-2 sm:p-3 border border-muted/20 focus-within:border-accent transition-colors">
+      <div className="relative">
+        {/* Search field */}
+        <div className="flex items-center bg-surface rounded-lg p-2 sm:p-3 border border-muted/20 focus-within:border-accent transition-colors">
           <input
             type="text"
             value={addUsername}
             onChange={(e) => setAddUsername(e.target.value)}
-            placeholder="You can add friends with their username"
-            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted/60 focus:outline-none py-1 sm:py-0 sm:pr-36"
+            placeholder="Type a username..."
+            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted/60 focus:outline-none"
           />
-          <ActionButton
-            type="submit"
-            variant="primary"
-            disabled={loading || !addUsername.trim()}
-            size="sm"
-          >
-            Send Friend Request
-          </ActionButton>
         </div>
+
+        {/* Errors */}
         {addError && (
-          <p className="text-xs text-destructive mt-1">{addError}</p>
+          <p className="text-xs text-destructive mt-2">{addError}</p>
         )}
-        {addSuccess && <p className="text-xs text-accent mt-1">{addSuccess}</p>}
-      </form>
+        {addSuccess && <p className="text-xs text-accent mt-2">{addSuccess}</p>}
+
+        {/* Search Results */}
+        {addUsername.trim().length >= 2 && (
+          <div className="mt-2 bg-surface rounded-lg border border-muted/20 overflow-hidden shadow-lg">
+            {isSearching ? (
+              <div className="p-3 text-xs text-muted text-center">
+                Searching...
+              </div>
+            ) : searchResults.length === 0 ? (
+              <div className="p-3 text-xs text-muted text-center">
+                No users found matching &quot;{addUsername}&quot;
+              </div>
+            ) : (
+              <div className="divide-y divide-muted/10">
+                {searchResults.map((user) => {
+                  if (user.id === currentUserId) return null; // Hide your own account
+
+                  const friendshipStatus = getFriendshipStatus(user.id);
+
+                  return (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-2.5 hover:bg-background/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <UserAvatar user={user} size="md" />
+                        <span className="text-sm font-medium text-foreground truncate">
+                          {user.username}
+                        </span>
+                      </div>
+
+                      {/* Status or Add Button */}
+                      {!friendshipStatus ? (
+                        <ActionButton
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          disabled={loadingUsername === user.username}
+                          onClick={() => sendRequestToUser(user.username)}
+                        >
+                          {loadingUsername === user.username
+                            ? "Sending..."
+                            : "Add Friend"}
+                        </ActionButton>
+                      ) : (
+                        <span className="text-xs text-muted font-medium px-2 py-1 rounded bg-background/50 border border-muted/10">
+                          {friendshipStatus === "ACCEPTED"
+                            ? "Friend"
+                            : "Pending"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
