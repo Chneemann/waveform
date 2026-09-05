@@ -1,29 +1,37 @@
 /**
  * @file components/chat/ChatItem.tsx
- * @description Single message row component supporting editing and deletion functionality.
+ * @description Single message row component supporting editing, deletion, avatar rendering, and user role tracking for chat channels and direct messages.
  */
 
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Message, Member, User } from "@/db/schema";
+import type { Message, User } from "@/db/schema";
 import { UserAvatar } from "../ui/UserAvatar";
 import { ChatItemActions } from "./ChatItemActions";
 import { ChatItemEdit } from "./ChatItemEdit";
 
 /**
- * Composite message type extending base database Message with populated member and user relation.
+ * Composite message type extending base database Message with channel/conversation details and member relation.
  *
  * @interface MessageWithMember
  * @property {string} id - The unique identifier of the message.
  * @property {string} content - The text content of the message.
- * @property {string} createdAt - The timestamp when the message was created.
- * @property {string | null} [updatedAt] - The timestamp when the message was last updated.
- * @property {Member & { user: User }} member - The associated member and user relational data.
+ * @property {string | Date} createdAt - The creation timestamp of the message.
+ * @property {string | Date} [updatedAt] - The optional update timestamp of the message.
+ * @property {string} [channelId] - Optional associated channel identifier.
+ * @property {string} [conversationId] - Optional associated conversation identifier.
+ * @property {"chat" | "dm"} [type] - Optional chat type indicator.
+ * @property {{ id: string; role: string; user: User }} member - Associated member details including user relation.
  */
-export type MessageWithMember = Message & {
-  member: Member & {
+export type MessageWithMember = Omit<Message, "channelId"> & {
+  channelId?: string;
+  conversationId?: string;
+  type?: "chat" | "dm";
+  member: {
+    id: string;
+    role: string;
     user: User;
   };
 };
@@ -32,32 +40,47 @@ export type MessageWithMember = Message & {
  * Properties for the ChatItem component.
  *
  * @interface ChatItemProps
- * @property {MessageWithMember} message - The message object containing member and user relational data.
+ * @property {"chat" | "dm"} type - The type of chat context (channel chat or direct message).
+ * @property {MessageWithMember} message - The message object containing member and content data.
  * @property {string} [currentUserId] - The unique identifier of the currently logged-in user.
+ * @property {(id: string) => void} [onDeleteSuccess] - Optional callback executed when a message is successfully deleted.
+ * @property {(id: string, newContent: string) => void} [onEditSuccess] - Optional callback executed when a message is successfully edited.
  */
 interface ChatItemProps {
+  type: "chat" | "dm";
   message: MessageWithMember;
-  currentUserId?: string;
+  currentUserId: string;
+  onDeleteSuccess?: (id: string) => void;
+  onEditSuccess?: (id: string, newContent: string) => void;
 }
 
 /**
- * Renders an individual chat message row supporting message editing, deletion, and author details.
+ * Renders an individual chat message row with support for inline editing, deletion, and status indicators.
  *
- * @async
  * @param {ChatItemProps} props - The component props.
- * @param {MessageWithMember} props.message - The message object containing member and user relational data.
- * @param {string} [props.currentUserId] - The unique identifier of the currently logged-in user.
- * @returns {JSX.Element} The rendered single chat message item.
+ * @param {"chat" | "dm"} props.type - The type of chat context.
+ * @param {MessageWithMember} props.message - The message object.
+ * @param {string} [props.currentUserId] - The unique identifier of the current user.
+ * @param {(id: string) => void} [props.onDeleteSuccess] - Callback on successful deletion.
+ * @param {(id: string, newContent: string) => void} [props.onEditSuccess] - Callback on successful edit.
+ * @returns {JSX.Element} The rendered chat item component.
  */
-export function ChatItem({ message, currentUserId }: ChatItemProps) {
+export function ChatItem({
+  type,
+  message,
+  currentUserId,
+  onDeleteSuccess,
+  onEditSuccess,
+}: ChatItemProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(message.content);
   const [isLoading, setIsLoading] = useState(false);
 
-  const user = message.member?.user;
-  const fullName = user ? user.username.trim() : "Deleted Member";
+  const isDirect = type;
+  const user = message.member.user;
+  const fullName = user.username.trim();
   const isOwner = user?.id === currentUserId;
   const isUpdated =
     message.updatedAt &&
@@ -72,24 +95,34 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
     },
   );
 
+  // Dynamischen Endpunkt basierend auf Chat-Typ bestimmen
+  const apiEndpoint = isDirect
+    ? `/api/dm/messages/${message.id}`
+    : `/api/messages/${message.id}`;
+
   /**
    * Handles the asynchronous deletion of the chat message.
    *
    * @async
    * @function handleDelete
-   * @returns {Promise<void>} Resolves when the deletion process completes or fails.
+   * @returns {Promise<void>} Resolves when the delete operation completes or fails.
    */
   const handleDelete = async () => {
     if (isDeleting) return;
 
     try {
       setIsDeleting(true);
-      const response = await fetch(`/api/messages/${message.id}`, {
+      const response = await fetch(apiEndpoint, {
         method: "DELETE",
       });
 
       if (!response.ok) throw new Error("Failed to delete message");
-      router.refresh();
+
+      if (onDeleteSuccess) {
+        onDeleteSuccess(message.id);
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error deleting the message:", error);
     } finally {
@@ -98,26 +131,32 @@ export function ChatItem({ message, currentUserId }: ChatItemProps) {
   };
 
   /**
-   * Handles the asynchronous update of the chat message content.
+   * Handles the asynchronous update/editing of the chat message content.
    *
    * @async
    * @function handleEdit
-   * @returns {Promise<void>} Resolves when the update process completes or fails.
+   * @returns {Promise<void>} Resolves when the edit operation completes or fails.
    */
   const handleEdit = async () => {
     if (!content.trim() || isLoading) return;
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/messages/${message.id}`, {
+      const response = await fetch(apiEndpoint, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       });
 
       if (!response.ok) throw new Error("Failed to update message");
+
       setIsEditing(false);
-      router.refresh();
+
+      if (onEditSuccess) {
+        onEditSuccess(message.id, content.trim());
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error editing the message:", error);
     } finally {

@@ -8,6 +8,7 @@
 import { MessageSquare, X } from "lucide-react";
 import { UserAvatar } from "../ui/UserAvatar";
 import { Friendship, FriendUser } from "./FriendsView";
+import { useRouter } from "next/navigation";
 
 /**
  * Properties for the AllFriendsTab component.
@@ -37,6 +38,25 @@ export function AllFriendsTab({
   getFriendUser,
   onRemove,
 }: AllFriendsTabProps) {
+  const router = useRouter();
+
+  const handleStartConversation = async (recipientId: string) => {
+    try {
+      const res = await fetch("/api/dm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientId }),
+      });
+
+      if (res.ok) {
+        const conversation = await res.json();
+        router.push(`/dm/${conversation.id}`);
+      }
+    } catch (error) {
+      console.error("Failed to start conversation:", error);
+    }
+  };
+
   return (
     <div>
       <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
@@ -49,12 +69,11 @@ export function AllFriendsTab({
         <div className="space-y-1">
           {acceptedFriends.map((f) => {
             const friend = getFriendUser(f);
-            const isOnline = friend.status && friend.status !== "OFFLINE";
 
             return (
               <div
                 key={f.id}
-                className="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface/50 border-t border-muted/10 group cursor-pointer"
+                className="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface/50 border-t border-muted/10 group"
               >
                 <div className="flex items-center gap-3 min-w-0 pr-2">
                   <div className="relative shrink-0">
@@ -64,8 +83,8 @@ export function AllFriendsTab({
                     <div className="text-sm font-medium text-foreground truncate">
                       {friend.username}
                     </div>
-                    <div className="text-xs text-muted truncate">
-                      {isOnline ? "Online" : "Offline"}
+                    <div className="text-xs text-muted truncate capitalize">
+                      {friend.status.toLowerCase()}
                     </div>
                   </div>
                 </div>
@@ -73,6 +92,7 @@ export function AllFriendsTab({
                 <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <button
                     type="button"
+                    onClick={() => handleStartConversation(friend.id)}
                     title="Message"
                     className="p-2 rounded-full bg-surface hover:bg-muted/30 text-muted hover:text-foreground transition-colors cursor-pointer"
                   >
