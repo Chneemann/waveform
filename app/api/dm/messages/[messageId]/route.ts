@@ -6,16 +6,9 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { directMessages } from "@/db/schema";
+import { isValidUuid } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-
-/**
- * Regular expression for validating UUID version 1-5 strings.
- *
- * @constant {RegExp}
- */
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Handles PATCH requests to update the content of an existing direct message.
@@ -34,7 +27,7 @@ export async function PATCH(
   try {
     const { messageId } = await params;
 
-    if (!UUID_REGEX.test(messageId)) {
+    if (!isValidUuid(messageId)) {
       return NextResponse.json(
         { error: "Invalid Message ID" },
         { status: 400 },
@@ -104,7 +97,7 @@ export async function DELETE(
   try {
     const { messageId } = await params;
 
-    if (!UUID_REGEX.test(messageId)) {
+    if (!isValidUuid(messageId)) {
       return NextResponse.json(
         { error: "Invalid Message ID" },
         { status: 400 },

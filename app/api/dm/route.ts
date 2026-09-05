@@ -6,16 +6,9 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { conversations } from "@/db/schema";
+import { isValidUuid } from "@/lib/utils";
 import { and, eq, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
-
-/**
- * Regular expression pattern for validating UUID format.
- *
- * @type {RegExp}
- */
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Handles HTTP POST requests to initiate or fetch a direct message conversation with a specified recipient.
@@ -36,7 +29,7 @@ export async function POST(req: Request) {
 
     if (
       !recipientId ||
-      !UUID_REGEX.test(recipientId) ||
+      !isValidUuid(recipientId) ||
       recipientId === session.user.id
     ) {
       return NextResponse.json(

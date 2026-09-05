@@ -11,14 +11,7 @@ import { ChatMessages } from "@/components/chat/ChatMessages";
 import { getChannelById } from "@/lib/services/channel.service";
 import { getChannelMessages } from "@/lib/services/message.service";
 import { getServerById } from "@/lib/services/server.service";
-
-/**
- * Regular expression for validating UUID string formats.
- *
- * @type {RegExp}
- */
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { isValidUuid } from "@/lib/utils";
 
 /**
  * Renders the channel chat view by validating parameters, checking user session, fetching channel data, and displaying headers, messages, and input controls.
@@ -37,7 +30,7 @@ export default async function ChannelPage({
   const { serverId, channelId } = await params;
 
   // 1. Check the UUID format for BOTH parameters
-  if (!UUID_REGEX.test(serverId) || !UUID_REGEX.test(channelId)) {
+  if (!isValidUuid(serverId) || !isValidUuid(channelId)) {
     redirect("/");
   }
 

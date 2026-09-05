@@ -12,14 +12,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatMessages } from "@/components/chat/ChatMessages";
 import type { MessageWithMember } from "@/components/chat/ChatItem";
-
-/**
- * Regular expression to validate standard UUID v1-v5 formats.
- *
- * @type {RegExp}
- */
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { isValidUuid } from "@/lib/utils";
 
 /**
  * Renders the direct message conversation page with header, message history, and input field.
@@ -38,7 +31,7 @@ export default async function DirectMessagePage({
   const { conversationId } = await params;
 
   // 1. Validation
-  if (!UUID_REGEX.test(conversationId)) {
+  if (!isValidUuid(conversationId)) {
     redirect("/");
   }
 

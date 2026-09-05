@@ -6,12 +6,9 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { conversations, directMessages } from "@/db/schema";
+import { isValidUuid } from "@/lib/utils";
 import { and, eq, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
-
-/** Regular expression to validate UUID format for conversation IDs. */
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Handles POST requests to send a new direct message in a conversation.
@@ -30,7 +27,7 @@ export async function POST(
   try {
     const { conversationId } = await params;
 
-    if (!UUID_REGEX.test(conversationId)) {
+    if (!isValidUuid(conversationId)) {
       return NextResponse.json(
         { error: "Invalid Conversation ID" },
         { status: 400 },
