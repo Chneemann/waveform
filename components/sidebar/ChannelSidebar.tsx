@@ -9,7 +9,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useActiveServer } from "@/lib/context/ServerContext";
-import { DirectMessageSidebar } from "@/components/sidebar/DirectMessageSidebar";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { CreateChannelModal } from "@/components/modals/CreateChannelModal";
 import { EditChannelModal } from "@/components/modals/EditChannelModal";
@@ -19,7 +18,7 @@ import type { Channel } from "@/db/schema";
 /**
  * Renders the channel sidebar for the active server with text channel lists, creation triggers, and settings handlers.
  *
- * @returns {JSX.Element} The rendered channel sidebar container.
+ * @returns {JSX.Element | null} The rendered channel sidebar container or null if no active server exists.
  */
 export function ChannelSidebar() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -29,6 +28,10 @@ export function ChannelSidebar() {
   const currentChannelId = params?.channelId as string;
   const { activeServer } = useActiveServer();
   const { closeNav, toggleNav } = useSidebarStore();
+
+  if (!activeServer) {
+    return null;
+  }
 
   /**
    * Handles channel selection clicks, automatically closing the mobile navigation drawer on smaller screens.
@@ -55,10 +58,6 @@ export function ChannelSidebar() {
     e.stopPropagation();
     setEditingChannel(channel);
   };
-
-  if (!activeServer) {
-    return <DirectMessageSidebar />;
-  }
 
   return (
     <>

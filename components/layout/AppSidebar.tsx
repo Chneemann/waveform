@@ -9,9 +9,16 @@ import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { ServerSidebar } from "@/components/sidebar/ServerSidebar";
 import { ChannelSidebar } from "@/components/sidebar/ChannelSidebar";
 import { UserPanel } from "@/components/sidebar/UserPanel";
-import type { ServerWithChannels } from "@/lib/context/ServerContext";
+import {
+  useActiveServer,
+  type ServerWithChannels,
+} from "@/lib/context/ServerContext";
 import type { UserStatus } from "@/db/schema";
 import { clsx } from "clsx";
+import {
+  DirectMessageSidebar,
+  SidebarConversation,
+} from "../sidebar/DirectMessageSidebar";
 
 /**
  * Properties representing the user in the sidebar.
@@ -32,10 +39,12 @@ export interface SidebarUser {
  *
  * @interface AppSidebarProps
  * @property {ServerWithChannels[]} servers - List of available servers including their channels.
+ * @property {SidebarConversation[]} conversations - List of direct message conversations.
  * @property {SidebarUser} user - Information about the currently authenticated user.
  */
 interface AppSidebarProps {
   servers: ServerWithChannels[];
+  conversations: SidebarConversation[];
   user: SidebarUser;
 }
 
@@ -43,10 +52,18 @@ interface AppSidebarProps {
  * Renders the responsive application sidebar containing server navigation, channel lists, and user profile.
  *
  * @param {AppSidebarProps} props - The component props.
+ * @param {ServerWithChannels[]} props.servers - List of available servers including their channels.
+ * @param {SidebarConversation[]} props.conversations - List of direct message conversations.
+ * @param {SidebarUser} props.user - Information about the currently authenticated user.
  * @returns {JSX.Element} The rendered mobile overlay and responsive sidebar structure.
  */
-export function AppSidebar({ servers, user }: AppSidebarProps) {
+export function AppSidebar({
+  servers,
+  user,
+  conversations = [],
+}: AppSidebarProps) {
   const { isNavOpen, closeAll } = useSidebarStore();
+  const { activeServer } = useActiveServer();
 
   return (
     <>
@@ -59,7 +76,11 @@ export function AppSidebar({ servers, user }: AppSidebarProps) {
       >
         <div className="flex flex-1 min-h-0 w-78">
           <ServerSidebar servers={servers} />
-          <ChannelSidebar />
+          {!activeServer ? (
+            <DirectMessageSidebar conversations={conversations} />
+          ) : (
+            <ChannelSidebar />
+          )}
         </div>
         <div className="w-78">
           <UserPanel user={user} />
@@ -82,7 +103,11 @@ export function AppSidebar({ servers, user }: AppSidebarProps) {
       >
         <div className="flex flex-1 min-h-0 w-full">
           <ServerSidebar servers={servers} />
-          <ChannelSidebar />
+          {!activeServer ? (
+            <DirectMessageSidebar conversations={conversations} />
+          ) : (
+            <ChannelSidebar />
+          )}
         </div>
         <UserPanel user={user} />
       </div>

@@ -15,7 +15,7 @@ import { clsx } from "clsx";
  *
  * @type AvatarSize
  */
-type AvatarSize = "sm" | "md";
+type AvatarSize = "xs" | "sm" | "md";
 
 /**
  * User object properties required to render the avatar.
@@ -46,6 +46,7 @@ interface UserAvatarProps {
 }
 
 const SIZE_MAP: Record<AvatarSize, { container: string; badge: string }> = {
+  xs: { container: "w-6 h-6 text-xs", badge: "w-1.5 h-1.5" },
   sm: { container: "w-8 h-8 text-xs", badge: "w-2.5 h-2.5" },
   md: { container: "w-10 h-10 text-sm", badge: "w-3 h-3" },
 };
