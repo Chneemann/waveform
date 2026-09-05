@@ -95,10 +95,11 @@ export function ChatItem({
     },
   );
 
-  // Dynamischen Endpunkt basierend auf Chat-Typ bestimmen
-  const apiEndpoint = isDirect
-    ? `/api/dm/messages/${message.id}`
-    : `/api/messages/${message.id}`;
+  // Determine the dynamic endpoint based on the chat type
+  const apiEndpoint =
+    isDirect === "dm"
+      ? `/api/dm/messages/${message.id}`
+      : `/api/messages/${message.id}`;
 
   /**
    * Handles the asynchronous deletion of the chat message.
