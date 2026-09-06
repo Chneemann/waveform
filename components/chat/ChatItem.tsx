@@ -42,7 +42,7 @@ export type MessageWithMember = Omit<Message, "channelId"> & {
  * @interface ChatItemProps
  * @property {"chat" | "dm"} type - The type of chat context (channel chat or direct message).
  * @property {MessageWithMember} message - The message object containing member and content data.
- * @property {string} [currentUserId] - The unique identifier of the currently logged-in user.
+ * @property {string} currentUserId - The unique identifier of the currently logged-in user.
  * @property {(id: string) => void} [onDeleteSuccess] - Optional callback executed when a message is successfully deleted.
  * @property {(id: string, newContent: string) => void} [onEditSuccess] - Optional callback executed when a message is successfully edited.
  */
@@ -60,7 +60,7 @@ interface ChatItemProps {
  * @param {ChatItemProps} props - The component props.
  * @param {"chat" | "dm"} props.type - The type of chat context.
  * @param {MessageWithMember} props.message - The message object.
- * @param {string} [props.currentUserId] - The unique identifier of the current user.
+ * @param {string} props.currentUserId - The unique identifier of the current user.
  * @param {(id: string) => void} [props.onDeleteSuccess] - Callback on successful deletion.
  * @param {(id: string, newContent: string) => void} [props.onEditSuccess] - Callback on successful edit.
  * @returns {JSX.Element} The rendered chat item component.
@@ -193,6 +193,7 @@ export function ChatItem({
         {isEditing ? (
           <ChatItemEdit
             content={content}
+            initialContent={message.content}
             setContent={setContent}
             onSave={handleEdit}
             onCancel={() => {
@@ -202,7 +203,7 @@ export function ChatItem({
             isLoading={isLoading}
           />
         ) : (
-          <p className="text-foreground text-sm leading-relaxed wrap-break-words mt-0.5">
+          <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap wrap-break-words mt-0.5">
             {message.content}
           </p>
         )}

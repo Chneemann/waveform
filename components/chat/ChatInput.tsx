@@ -1,12 +1,13 @@
 /**
  * @file components/chat/ChatInput.tsx
- * @description Input component for sending chat messages within channels or direct message conversations, handling submission via keyboard events and API requests.
+ * @description Input component for sending chat messages within channels or direct message conversations, handling submission via form submit and API requests.
  */
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { SendHorizontal, Loader2 } from "lucide-react";
 
 /**
  * Base properties shared across all ChatInput variations.
@@ -39,89 +40,130 @@ type ChatInputProps = BaseChatInputProps &
   );
 
 /**
- * Renders an input field for writing and submitting chat messages with loading states and keyboard event handlers.
+ * Renders an auto-expanding chat input form allowing users to send messages via API calls with keyboard shortcut support.
  *
  * @param {ChatInputProps} props - The component props.
- * @returns {JSX.Element} The rendered chat input component.
+ * @returns {JSX.Element} The rendered chat input form component.
  */
 export function ChatInput(props: ChatInputProps) {
+  const { placeholderName, onMessageSent, type } = props;
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
+  const trimmedContent = content.trim();
+  const isDm = type === "dm";
+
+  // Automatically adjust the height to fit the content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [content]);
+
   /**
-   * Handles keydown events on the input element to submit messages when pressing Enter without Shift.
+   * Handles the asynchronous form submission and sending of the chat message.
    *
    * @async
-   * @function handleKeyDown
-   * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event object.
-   * @returns {Promise<void>} Resolves when the message submission finishes or fails.
+   * @function handleSubmit
+   * @param {React.FormEvent} [e] - Optional form submit event.
+   * @returns {Promise<void>} Resolves when the message submission is complete.
    */
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
-      if (!content.trim() || isLoading) return;
+    if (!trimmedContent || isLoading) return;
 
-      try {
-        setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-        const endpoint =
-          props.type === "dm"
-            ? `/api/dm/${props.conversationId}`
-            : "/api/messages";
+      const endpoint = isDm
+        ? `/api/dm/${props.conversationId}`
+        : "/api/messages";
 
-        const payload =
-          props.type === "dm"
-            ? { content: content.trim() }
-            : {
-                content: content.trim(),
-                channelId: props.channelId,
-                serverId: props.serverId,
-              };
+      const payload = isDm
+        ? { content: trimmedContent }
+        : {
+            content: trimmedContent,
+            channelId: props.channelId,
+            serverId: props.serverId,
+          };
 
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-        if (!response.ok) {
-          throw new Error("Error sending message");
-        }
-
-        const data = await response.json();
-        setContent("");
-
-        if (props.onMessageSent) {
-          props.onMessageSent(data);
-        } else {
-          router.refresh();
-        }
-      } catch (error) {
-        console.error("Error sending the message:", error);
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error("Error sending message");
       }
+
+      const data = await response.json();
+      setContent("");
+
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
+
+      if (onMessageSent) {
+        onMessageSent(data);
+      } else {
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error sending the message:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const placeholderText =
-    props.type === "dm"
-      ? `Message @${props.placeholderName}`
-      : `Message #${props.placeholderName}`;
+  /**
+   * Handles keyboard events to submit messages on Enter key press without shift.
+   *
+   * @function handleKeyDown
+   * @param {React.KeyboardEvent<HTMLTextAreaElement>} e - The keyboard event object.
+   */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const placeholderText = isDm
+    ? `Message @${placeholderName}`
+    : `Message #${placeholderName}`;
 
   return (
-    <div className="bg-surface border border-surface rounded-lg p-2.5 flex items-center focus-within:ring-1 focus-within:ring-accent transition-all">
-      <input
-        type="text"
+    <form
+      onSubmit={handleSubmit}
+      className="bg-surface border border-surface rounded-lg p-2.5 flex items-end gap-2 focus-within:ring-1 focus-within:ring-accent transition-all"
+    >
+      <textarea
+        ref={textareaRef}
+        rows={1}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={isLoading}
         placeholder={placeholderText}
-        className="w-full bg-transparent outline-none text-foreground placeholder-muted text-sm disabled:opacity-50"
+        className="w-full bg-transparent outline-none text-foreground placeholder-muted text-sm disabled:opacity-50 resize-none max-h-40 min-h-6"
       />
-    </div>
+      <button
+        type="submit"
+        disabled={!trimmedContent || isLoading}
+        title="Send Message"
+        className="p-1 rounded-md text-muted hover:text-white hover:bg-accent/20 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0 scrollbar-thin"
+      >
+        {isLoading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <SendHorizontal className="w-4 h-4" />
+        )}
+      </button>
+    </form>
   );
 }

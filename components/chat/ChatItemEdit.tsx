@@ -1,16 +1,18 @@
 /**
  * @file components/chat/ChatItemEdit.tsx
- * @description Component allowing users to edit an existing chat message inline with keyboard support.
+ * @description Component allowing users to edit an existing chat message inline with auto-resizing textarea and keyboard support.
  */
 
 "use client";
 
-import { Check, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Check, X, Loader2 } from "lucide-react";
 
 /**
  * Properties for the ChatItemEdit component.
  *
  * @interface ChatItemEditProps
+ * @property {string} [initialContent] - The original unedited text content of the message.
  * @property {string} content - The current text content of the message being edited.
  * @property {function} setContent - Callback function to update the message content state.
  * @property {function} onSave - Callback function invoked to save the edited message.
@@ -18,6 +20,7 @@ import { Check, X } from "lucide-react";
  * @property {boolean} isLoading - Flag indicating whether a save operation is currently in progress.
  */
 interface ChatItemEditProps {
+  initialContent?: string;
   content: string;
   setContent: (value: string) => void;
   onSave: () => void;
@@ -29,6 +32,7 @@ interface ChatItemEditProps {
  * Renders an inline text input field with save and cancel buttons for editing chat messages.
  *
  * @param {ChatItemEditProps} props - The component props.
+ * @param {string} [props.initialContent] - The original message content.
  * @param {string} props.content - The current text content of the message being edited.
  * @param {function} props.setContent - Callback function to update the message content state.
  * @param {function} props.onSave - Callback function invoked to save the edited message.
@@ -37,54 +41,84 @@ interface ChatItemEditProps {
  * @returns {JSX.Element} The rendered inline message editing component.
  */
 export function ChatItemEdit({
+  initialContent,
   content,
   setContent,
   onSave,
   onCancel,
   isLoading,
 }: ChatItemEditProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // If `initialContent` is not passed, the era is considered unchanged if `content` is empty
+  const isChanged =
+    initialContent !== undefined
+      ? content.trim() !== initialContent.trim()
+      : true;
+  const isValidAndChanged = isChanged && content.trim().length > 0;
+
+  // Automatically adjust the height to fit the content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [content]);
+
   /**
-   * Handles keyboard events within the input field for quick actions (Enter to save, Escape to cancel).
+   * Handles keyboard events for saving on Enter or cancelling on Escape.
    *
    * @function handleKeyDown
-   * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event object.
+   * @param {React.KeyboardEvent<HTMLTextAreaElement>} e - The keyboard event object.
    * @returns {void}
    */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSave();
+      if (isValidAndChanged && !isLoading) {
+        onSave();
+      }
     } else if (e.key === "Escape") {
       onCancel();
     }
   };
 
   return (
-    <div className="mt-1 flex items-center gap-2">
-      <input
-        type="text"
+    <div className="mt-1 flex items-start gap-2">
+      <textarea
+        ref={textareaRef}
+        rows={1}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={isLoading}
-        className="w-full bg-background border border-surface rounded px-2 py-1 text-sm text-foreground outline-none focus:ring-1 focus:ring-accent"
+        className="w-full bg-background border-none outline-none focus:ring-1 focus:ring-accent resize-none max-h-40 min-h-6 px-1 py-0.5 text-sm text-foreground overflow-y-auto scrollbar-thin"
         autoFocus
       />
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={isLoading}
-        className="p-1 text-muted hover:text-foreground cursor-pointer"
-      >
-        <Check className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        onClick={onCancel}
-        className="p-1 text-muted hover:text-foreground cursor-pointer"
-      >
-        <X className="w-4 h-4" />
-      </button>
+      <div className="flex items-center gap-1 shrink-0 mt-0.5">
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={!isValidAndChanged || isLoading}
+          title={isValidAndChanged ? "Save changes" : "No changes to save"}
+          className="p-1 text-muted hover:text-foreground disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Check className="w-4 h-4" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isLoading}
+          title="Cancel"
+          className="p-1 text-muted hover:text-foreground disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
