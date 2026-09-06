@@ -45,6 +45,7 @@ export function EditServerModal({
   const [name, setName] = useState(initialName);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
@@ -102,6 +103,11 @@ export function EditServerModal({
    * @returns {Promise<void>} Resolves when the server deletion process completes or fails.
    */
   const handleDelete = async () => {
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
+      return;
+    }
+
     if (isDeleting || isLoading) return;
 
     try {
@@ -177,7 +183,7 @@ export function EditServerModal({
               disabled={isLoading}
               icon={Trash2}
             >
-              Delete Server
+              {isConfirmingDelete ? "Sure?" : "Delete Server "}
             </ActionButton>
 
             <div className="flex items-center gap-2">

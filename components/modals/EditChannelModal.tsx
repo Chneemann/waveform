@@ -43,6 +43,7 @@ export function EditChannelModal({
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
@@ -51,6 +52,7 @@ export function EditChannelModal({
   useEffect(() => {
     if (channel) {
       setName(channel.name);
+      setIsConfirmingDelete(false);
     }
   }, [channel]);
 
@@ -105,6 +107,11 @@ export function EditChannelModal({
    * @returns {Promise<void>} Resolves when the channel deletion and navigation processes complete or fail.
    */
   const handleDelete = async () => {
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
+      return;
+    }
+
     if (isDeleting || isLoading) return;
 
     try {
@@ -198,7 +205,7 @@ export function EditChannelModal({
               disabled={isLoading}
               icon={Trash2}
             >
-              Delete Channel
+              {isConfirmingDelete ? "Sure?" : "Delete Channel"}
             </ActionButton>
 
             <div className="flex items-center gap-2">
