@@ -198,7 +198,7 @@ export function EditChannelModal({
               disabled={isLoading}
               icon={Trash2}
             >
-              Delete Server
+              Delete Channel
             </ActionButton>
 
             <div className="flex items-center gap-2">
