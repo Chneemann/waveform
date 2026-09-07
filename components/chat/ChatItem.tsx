@@ -83,6 +83,7 @@ export function ChatItem({
       ? `/api/dm/messages/${message.id}`
       : `/api/messages/${message.id}`;
 
+  /** Closes the profile popover when clicking outside or pressing the Escape key. */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -93,14 +94,24 @@ export function ChatItem({
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsProfileOpen(false);
+      }
+    };
+
     if (isProfileOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
     }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isProfileOpen]);
 
+  /** Determines the friendship status between the current user and the message author. */
   const getFriendshipStatus = () => {
     if (
       !user?.id ||

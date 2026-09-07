@@ -40,23 +40,28 @@ export function UserProfilePopover({
   const [justSent, setJustSent] = useState(false);
 
   const isSelf = user.id === currentUserId;
-
   const isAlreadyFriend = friendshipStatus === "ACCEPTED";
   const isPending = friendshipStatus === "PENDING" || justSent;
   const isButtonDisabled = isLoading || isAlreadyFriend || isPending;
 
+  /** Precise positioning with Y- and X-axis corrections. */
   useLayoutEffect(() => {
     if (!triggerRef.current || !popoverRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const popoverRect = popoverRef.current.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
 
     let top = triggerRect.bottom + 8;
-    const left = triggerRect.left;
+    let left = triggerRect.left;
 
     if (top + popoverRect.height > viewportHeight - 16) {
       top = triggerRect.top - popoverRect.height - 8;
+    }
+
+    if (left + popoverRect.width > viewportWidth - 16) {
+      left = viewportWidth - popoverRect.width - 16;
     }
 
     setCoords({ top, left });
@@ -89,7 +94,7 @@ export function UserProfilePopover({
       }}
       className="z-50 w-64 bg-background border border-surface/80 rounded-2xl p-4 shadow-2xl transition-opacity duration-75 pointer-events-auto"
     >
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3">
         <UserAvatar user={user} size="sm" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate leading-tight">
