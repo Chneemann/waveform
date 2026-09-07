@@ -1,6 +1,6 @@
 /**
  * @file app/(app)/servers/[serverId]/channels/[channelId]/page.tsx
- * @description Dynamic server channel page component performing authentication, parameter validation, parallel data fetching, and rendering the chat layout.
+ * @description Server channel chat page component handling authentication guards, parallel data fetching for server and messages, and rendering the channel layout.
  */
 
 import { auth } from "@/auth";
@@ -12,16 +12,9 @@ import { getChannelById } from "@/lib/services/channel.service";
 import { getChannelMessages } from "@/lib/services/message.service";
 import { getServerById } from "@/lib/services/server.service";
 import { isValidUuid } from "@/lib/utils";
+import { getUserFriendships } from "@/lib/services/friends.service";
 
-/**
- * Renders the channel chat view by validating parameters, checking user session, fetching channel data, and displaying headers, messages, and input controls.
- *
- * @async
- * @function ChannelPage
- * @param {Object} props - The component props containing route parameters.
- * @param {Promise<{ serverId: string; channelId: string }>} props.params - Route parameters containing server and channel identifiers.
- * @returns {Promise<JSX.Element>} The rendered channel page layout.
- */
+/** Renders the channel chat view by validating parameters, checking user session, fetching channel data, friendships, and displaying headers, messages, and input controls. */
 export default async function ChannelPage({
   params,
 }: {
@@ -33,7 +26,6 @@ export default async function ChannelPage({
   if (!isValidUuid(serverId) || !isValidUuid(channelId)) {
     redirect("/");
   }
-
   // 2. Auth Guard
   const session = await auth();
   if (!session?.user?.id) {
@@ -41,15 +33,17 @@ export default async function ChannelPage({
   }
 
   // 3. Parallel Loading of Data
-  const [server, channel, channelMessages] = await Promise.all([
+  const [server, channel, channelMessages, friendships] = await Promise.all([
     getServerById(serverId),
     getChannelById(channelId),
     getChannelMessages(channelId),
+    getUserFriendships(session.user.id),
   ]);
 
   if (!channel || !server) {
     redirect("/");
   }
+
   return (
     <div className="flex p-4 flex-col h-full bg-background min-h-0 overflow-hidden">
       <AppHeader
@@ -62,7 +56,8 @@ export default async function ChannelPage({
         type="chat"
         name={channel.name}
         initialMessages={channelMessages}
-        currentUserId={session?.user?.id}
+        currentUserId={session.user.id}
+        userFriendships={friendships}
       />
 
       <ChatInput

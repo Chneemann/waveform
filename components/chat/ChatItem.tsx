@@ -1,30 +1,20 @@
 /**
  * @file components/chat/ChatItem.tsx
- * @description Single message row component supporting editing, deletion, avatar rendering, and user role tracking for chat channels and direct messages.
+ * @description Single message row component supporting editing, deletion, avatar rendering, and user profile popover with quick action triggers.
  */
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Message, User } from "@/db/schema";
 import { UserAvatar } from "../ui/UserAvatar";
 import { ChatItemActions } from "./ChatItemActions";
 import { ChatItemEdit } from "./ChatItemEdit";
+import { UserProfilePopover } from "../ui/UserProfilePopover";
+import { useActiveServer } from "@/lib/context/ServerContext";
 
-/**
- * Composite message type extending base database Message with channel/conversation details and member relation.
- *
- * @interface MessageWithMember
- * @property {string} id - The unique identifier of the message.
- * @property {string} content - The text content of the message.
- * @property {string | Date} createdAt - The creation timestamp of the message.
- * @property {string | Date} [updatedAt] - The optional update timestamp of the message.
- * @property {string} [channelId] - Optional associated channel identifier.
- * @property {string} [conversationId] - Optional associated conversation identifier.
- * @property {"chat" | "dm"} [type] - Optional chat type indicator.
- * @property {{ id: string; role: string; user: User }} member - Associated member details including user relation.
- */
+/** Composite message type extending base database Message with channel/conversation details and member relation. */
 export type MessageWithMember = Omit<Message, "channelId"> & {
   channelId?: string;
   conversationId?: string;
@@ -36,47 +26,40 @@ export type MessageWithMember = Omit<Message, "channelId"> & {
   };
 };
 
-/**
- * Properties for the ChatItem component.
- *
- * @interface ChatItemProps
- * @property {"chat" | "dm"} type - The type of chat context (channel chat or direct message).
- * @property {MessageWithMember} message - The message object containing member and content data.
- * @property {string} currentUserId - The unique identifier of the currently logged-in user.
- * @property {(id: string) => void} [onDeleteSuccess] - Optional callback executed when a message is successfully deleted.
- * @property {(id: string, newContent: string) => void} [onEditSuccess] - Optional callback executed when a message is successfully edited.
- */
+/** Properties for the ChatItem component. */
 interface ChatItemProps {
   type: "chat" | "dm";
   message: MessageWithMember;
+  userFriendships: Array<{
+    senderId: string;
+    receiverId: string;
+    status: string;
+  }>;
   currentUserId: string;
   onDeleteSuccess?: (id: string) => void;
   onEditSuccess?: (id: string, newContent: string) => void;
 }
 
-/**
- * Renders an individual chat message row with support for inline editing, deletion, and status indicators.
- *
- * @param {ChatItemProps} props - The component props.
- * @param {"chat" | "dm"} props.type - The type of chat context.
- * @param {MessageWithMember} props.message - The message object.
- * @param {string} props.currentUserId - The unique identifier of the current user.
- * @param {(id: string) => void} [props.onDeleteSuccess] - Callback on successful deletion.
- * @param {(id: string, newContent: string) => void} [props.onEditSuccess] - Callback on successful edit.
- * @returns {JSX.Element} The rendered chat item component.
- */
+/** Renders an individual chat message row with support for user profiles, editing, and deletion. */
 export function ChatItem({
   type,
   message,
   currentUserId,
+  userFriendships,
   onDeleteSuccess,
   onEditSuccess,
 }: ChatItemProps) {
   const router = useRouter();
+  const { setActiveServer } = useActiveServer();
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [content, setContent] = useState(message.content);
   const [isLoading, setIsLoading] = useState(false);
+
+  const profileRef = useRef<HTMLDivElement>(null);
+  const nameBtnRef = useRef<HTMLButtonElement>(null);
 
   const isDirect = type;
   const user = message.member.user;
@@ -95,19 +78,89 @@ export function ChatItem({
     },
   );
 
-  // Determine the dynamic endpoint based on the chat type
   const apiEndpoint =
     isDirect === "dm"
       ? `/api/dm/messages/${message.id}`
       : `/api/messages/${message.id}`;
 
-  /**
-   * Handles the asynchronous deletion of the chat message.
-   *
-   * @async
-   * @function handleDelete
-   * @returns {Promise<void>} Resolves when the delete operation completes or fails.
-   */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    if (isProfileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isProfileOpen]);
+
+  const getFriendshipStatus = () => {
+    if (
+      !user?.id ||
+      user.id === currentUserId ||
+      !Array.isArray(userFriendships)
+    ) {
+      return null;
+    }
+
+    const friendship = userFriendships.find(
+      (f) =>
+        (f.senderId === user.id && f.receiverId === currentUserId) ||
+        (f.receiverId === user.id && f.senderId === currentUserId),
+    );
+
+    return friendship ? friendship.status : null;
+  };
+
+  const friendshipStatus = getFriendshipStatus();
+
+  /** Starts a direct message conversation with the specified recipient. */
+  const handleStartConversation = async (recipientId: string) => {
+    try {
+      const res = await fetch("/api/dm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientId }),
+      });
+
+      if (res.ok) {
+        const conversation = await res.json();
+        setActiveServer(null);
+        router.push(`/dm/${conversation.id}`);
+      }
+    } catch (error) {
+      console.error("Failed to start conversation:", error);
+    }
+  };
+
+  /** Sends a friend request to the user with the specified username. */
+  const handleAddFriend = async (username: string) => {
+    try {
+      const res = await fetch("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json();
+        console.error("Failed to send friend request:", data.error);
+      }
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+    }
+  };
+
+  /** Deletes the current chat message via API call. */
   const handleDelete = async () => {
     if (isDeleting) return;
 
@@ -131,13 +184,7 @@ export function ChatItem({
     }
   };
 
-  /**
-   * Handles the asynchronous update/editing of the chat message content.
-   *
-   * @async
-   * @function handleEdit
-   * @returns {Promise<void>} Resolves when the edit operation completes or fails.
-   */
+  /** Updates the message content via API PATCH request. */
   const handleEdit = async () => {
     if (!content.trim() || isLoading) return;
 
@@ -166,15 +213,41 @@ export function ChatItem({
   };
 
   return (
-    <div className="flex items-start gap-3 group p-2 rounded-xl hover:bg-surface transition-colors">
-      <UserAvatar user={user} size="md" />
+    <div className="flex items-start gap-3 group p-2 rounded-xl hover:bg-surface transition-colors relative">
+      <button
+        type="button"
+        onClick={() => setIsProfileOpen((prev) => !prev)}
+        className="focus:outline-none cursor-pointer shrink-0"
+      >
+        <UserAvatar user={user} size="md" />
+      </button>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-baseline gap-2 min-w-0">
-            <span className="font-semibold text-white text-sm hover:underline cursor-pointer truncate">
+          <div
+            className="flex items-baseline gap-2 min-w-0 relative"
+            ref={profileRef}
+          >
+            <button
+              ref={nameBtnRef}
+              type="button"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              className="font-semibold text-white text-sm hover:underline cursor-pointer truncate focus:outline-none text-left"
+            >
               {fullName}
-            </span>
+            </button>
+
+            {isProfileOpen && (
+              <UserProfilePopover
+                user={user}
+                currentUserId={currentUserId}
+                triggerRef={nameBtnRef}
+                friendshipStatus={friendshipStatus}
+                onDirectMessage={handleStartConversation}
+                onAddFriend={handleAddFriend}
+              />
+            )}
+
             <span className="text-xs text-muted shrink-0">{formattedTime}</span>
             {isUpdated && (
               <span className="text-[10px] text-muted shrink-0">(edited)</span>

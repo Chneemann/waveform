@@ -8,33 +8,22 @@
 import { useState, useEffect, useRef } from "react";
 import { ChatItem, type MessageWithMember } from "./ChatItem";
 
-/**
- * Properties for the ChatMessages component.
- *
- * @interface ChatMessagesProps
- * @property {"chat" | "dm"} type - The context type of the chat, either channel chat or direct message.
- * @property {string} name - The name of the channel or the direct message recipient.
- * @property {MessageWithMember[]} initialMessages - Initial array of messages loaded for the view.
- * @property {string} [currentUserId] - The unique identifier of the currently logged-in user.
- * @property {(id: string) => void} [onDeleteMessage] - Optional callback function triggered when a message is deleted.
- * @property {(id: string, newContent: string) => void} [onEditMessage] - Optional callback function triggered when a message is edited.
- */
+/** Properties for the ChatMessages component. */
 export interface ChatMessagesProps {
   type: "chat" | "dm";
   name: string;
   initialMessages: MessageWithMember[];
+  userFriendships: Array<{
+    senderId: string;
+    receiverId: string;
+    status: string;
+  }>;
   currentUserId: string;
   onDeleteMessage?: (id: string) => void;
   onEditMessage?: (id: string, newContent: string) => void;
 }
 
-/**
- * Formats a date string or Date object into a readable label (Today, Yesterday, or formatted date).
- *
- * @function formatDateLabel
- * @param {string | Date} dateString - The date string or object to format.
- * @returns {string} The formatted date label.
- */
+/** Formats a date string or Date object into a readable label (Today, Yesterday, or formatted date). */
 function formatDateLabel(dateString: string | Date): string {
   const date = new Date(dateString);
   const now = new Date();
@@ -61,23 +50,13 @@ function formatDateLabel(dateString: string | Date): string {
   });
 }
 
-/**
- * Renders the scrollable message feed with greetings, date dividers, and interactive chat items.
- *
- * @param {ChatMessagesProps} props - The component props.
- * @param {"chat" | "dm"} props.type - The context type of the chat.
- * @param {string} props.name - The name of the channel or user.
- * @param {MessageWithMember[]} props.initialMessages - Initial array of messages.
- * @param {string} [props.currentUserId] - The unique identifier of the current user.
- * @param {(id: string) => void} [props.onDeleteMessage] - Optional message deletion callback.
- * @param {(id: string, newContent: string) => void} [props.onEditMessage] - Optional message editing callback.
- * @returns {JSX.Element} The rendered chat messages container.
- */
+/** Renders the scrollable message feed with greetings, date dividers, and interactive chat items. */
 export function ChatMessages({
   type,
   name,
   initialMessages,
   currentUserId,
+  userFriendships,
   onDeleteMessage,
   onEditMessage,
 }: ChatMessagesProps) {
@@ -85,7 +64,6 @@ export function ChatMessages({
     useState<MessageWithMember[]>(initialMessages);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Synchronisiere den State, wenn der Server neue initialMessages liefert (z.B. nach router.refresh())
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages]);
@@ -179,6 +157,7 @@ export function ChatMessages({
                   type={type}
                   message={message}
                   currentUserId={currentUserId}
+                  userFriendships={userFriendships}
                   onDeleteSuccess={handleDeleteMessage}
                   onEditSuccess={handleEditMessage}
                 />

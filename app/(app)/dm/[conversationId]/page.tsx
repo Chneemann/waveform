@@ -13,16 +13,9 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatMessages } from "@/components/chat/ChatMessages";
 import type { MessageWithMember } from "@/components/chat/ChatItem";
 import { isValidUuid } from "@/lib/utils";
+import { getUserFriendships } from "@/lib/services/friends.service";
 
-/**
- * Renders the direct message conversation page with header, message history, and input field.
- *
- * @async
- * @function DirectMessagePage
- * @param {Object} props - The page props containing parameters.
- * @param {Promise<{ conversationId: string }>} props.params - Route parameters containing the conversation identifier.
- * @returns {Promise<JSX.Element>} The rendered direct message page layout.
- */
+/** Renders the direct message conversation page with header, message history, and input field. */
 export default async function DirectMessagePage({
   params,
 }: {
@@ -42,7 +35,7 @@ export default async function DirectMessagePage({
   }
 
   // 3. Database Queries
-  const [conversation, rawMessages] = await Promise.all([
+  const [conversation, rawMessages, friendships] = await Promise.all([
     db.query.conversations.findFirst({
       where: and(
         eq(conversations.id, conversationId),
@@ -63,6 +56,7 @@ export default async function DirectMessagePage({
       },
       orderBy: (dm, { asc }) => [asc(dm.createdAt)],
     }),
+    getUserFriendships(session.user.id),
   ]);
 
   if (!conversation) {
@@ -96,6 +90,7 @@ export default async function DirectMessagePage({
         name={partner.username}
         initialMessages={initialMessages}
         currentUserId={session.user.id}
+        userFriendships={friendships}
       />
 
       <ChatInput
