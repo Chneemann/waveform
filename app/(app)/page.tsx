@@ -9,14 +9,9 @@ import { friendships } from "@/db/schema";
 import { or, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { FriendsView, type Friendship } from "@/components/friends/FriendsView";
+import AppFooter from "@/components/layout/AppFooter";
 
-/**
- * Asynchronously renders the main application page for authenticated users.
- *
- * @async
- * @function AppPage
- * @returns {Promise<JSX.Element>} The rendered application page container with the FriendsView component.
- */
+/** Asynchronously renders the main application page for authenticated users. */
 export default async function AppPage() {
   const session = await auth();
   const currentUserId = session?.user?.id;
@@ -58,6 +53,7 @@ export default async function AppPage() {
         currentUserId={currentUserId}
         initialFriendships={rawFriendships as Friendship[]}
       />
+      <AppFooter />
     </div>
   );
 }

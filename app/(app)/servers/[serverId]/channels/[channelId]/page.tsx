@@ -13,6 +13,7 @@ import { getChannelMessages } from "@/lib/services/message.service";
 import { getServerById } from "@/lib/services/server.service";
 import { isValidUuid } from "@/lib/utils";
 import { getUserFriendships } from "@/lib/services/friends.service";
+import AppFooter from "@/components/layout/AppFooter";
 
 /** Renders the channel chat view by validating parameters, checking user session, fetching channel data, friendships, and displaying headers, messages, and input controls. */
 export default async function ChannelPage({
@@ -66,6 +67,8 @@ export default async function ChannelPage({
         channelId={channel.id}
         placeholderName={channel.name}
       />
+
+      <AppFooter />
     </div>
   );
 }

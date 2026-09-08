@@ -14,6 +14,7 @@ import { ChatMessages } from "@/components/chat/ChatMessages";
 import type { MessageWithMember } from "@/components/chat/ChatItem";
 import { isValidUuid } from "@/lib/utils";
 import { getUserFriendships } from "@/lib/services/friends.service";
+import AppFooter from "@/components/layout/AppFooter";
 
 /** Renders the direct message conversation page with header, message history, and input field. */
 export default async function DirectMessagePage({
@@ -98,6 +99,8 @@ export default async function DirectMessagePage({
         conversationId={conversationId}
         placeholderName={partner.username}
       />
+
+      <AppFooter />
     </div>
   );
 }
