@@ -1,6 +1,6 @@
 /**
  * @file app/(app)/layout.tsx
- * @description Main application layout component that handles user authentication guards, parallel data loading for servers and direct messages, and wraps the app with navigation sidebars and server context.
+ * @description Main application layout component that handles authentication, parallel data fetching for servers and conversations, and global sidebar state.
  */
 
 import { auth } from "@/auth";
@@ -12,16 +12,9 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { MemberSidebar } from "@/components/layout/MemberSidebar";
 import { ServerProvider } from "@/lib/context/ServerContext";
 import { redirect } from "next/navigation";
+import { getUserFriendships } from "@/lib/services/friends.service";
 
-/**
- * Renders the primary application layout with authentication checks, database fetching, and sidebar structure.
- *
- * @async
- * @function AppLayout
- * @param {Object} props - The layout properties.
- * @param {React.ReactNode} props.children - The nested child route content to be rendered within the layout.
- * @returns {Promise<JSX.Element>} The rendered application layout container.
- */
+/** Renders the primary application layout with authentication checks, database fetching, and sidebar structure. */
 export default async function AppLayout({
   children,
 }: {
@@ -79,6 +72,11 @@ export default async function AppLayout({
     };
   });
 
+  // Loading Friendships data
+  const [friendships] = await Promise.all([
+    getUserFriendships(session.user.id),
+  ]);
+
   return (
     <ServerProvider>
       <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
@@ -88,7 +86,10 @@ export default async function AppLayout({
           user={currentUser}
         />
         <div className="flex-1 flex min-w-0">{children}</div>
-        <MemberSidebar />
+        <MemberSidebar
+          currentUserId={currentUserId}
+          userFriendships={friendships}
+        />
       </div>
     </ServerProvider>
   );

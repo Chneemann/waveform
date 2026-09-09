@@ -1,19 +1,29 @@
 /**
  * @file components/members/MemberList.tsx
- * @description Renders categorized online and offline member lists.
+ * @description Renders categorized lists of online and offline members with their friendship statuses.
  */
 
 import { useMemo } from "react";
-import { MemberItem, type Member } from "@/components/members/MemberItem";
+import { MemberItem } from "@/components/members/MemberItem";
+import { User } from "@/db/schema";
 
-/**
- * Renders categorized lists of online and offline members with user counters.
- *
- * @param {Object} props - Component properties.
- * @param {Member[]} [props.members=[]] - Array of member objects to group and render.
- * @returns {JSX.Element} The rendered member list container.
- */
-export function MemberList({ members = [] }: { members?: Member[] }) {
+/** Props for the MemberList component. */
+interface MemberListProps {
+  members: User[];
+  currentUserId: string;
+  userFriendships: Array<{
+    senderId: string;
+    receiverId: string;
+    status: string;
+  }>;
+}
+
+/** Renders online and offline community members in distinct sections. */
+export function MemberList({
+  members = [],
+  currentUserId,
+  userFriendships = [],
+}: MemberListProps) {
   const { onlineMembers, offlineMembers } = useMemo(() => {
     return {
       onlineMembers: members.filter((m) => m.status !== "OFFLINE"),
@@ -30,7 +40,12 @@ export function MemberList({ members = [] }: { members?: Member[] }) {
         </h2>
         <div className="space-y-0.5">
           {onlineMembers.map((member) => (
-            <MemberItem key={member.id} member={member} />
+            <MemberItem
+              key={member.id}
+              member={member}
+              currentUserId={currentUserId}
+              userFriendships={userFriendships}
+            />
           ))}
           {onlineMembers.length === 0 && (
             <p className="text-xs text-muted/60 px-2 italic">
@@ -47,7 +62,13 @@ export function MemberList({ members = [] }: { members?: Member[] }) {
         </h2>
         <div className="space-y-0.5">
           {offlineMembers.map((member) => (
-            <MemberItem key={member.id} member={member} isOffline />
+            <MemberItem
+              key={member.id}
+              member={member}
+              currentUserId={currentUserId}
+              userFriendships={userFriendships}
+              isOffline
+            />
           ))}
         </div>
       </div>

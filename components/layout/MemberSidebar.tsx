@@ -1,6 +1,6 @@
 /**
  * @file components/layout/MemberSidebar.tsx
- * @description Layout sidebar container handling member fetching, responsive drawers, and click-outside dismissal.
+ * @description Member sidebar component displaying server members with desktop sliding panel and mobile drawer functionality.
  */
 
 "use client";
@@ -9,28 +9,27 @@ import { useEffect, useRef, useState } from "react";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { useActiveServer } from "@/lib/context/ServerContext";
 import { MemberList } from "@/components/members/MemberList";
-import type { Member } from "@/components/members/MemberItem";
 import { X, Loader2 } from "lucide-react";
 import { clsx } from "clsx";
+import { User } from "@/db/schema";
 
-/**
- * Properties for the MemberHeader component.
- *
- * @interface MemberHeaderProps
- * @property {string} title - The tooltip or accessibility title for the close button.
- * @property {() => void} onClose - Callback function triggered when the close button is clicked.
- */
+/** Properties for the MemberHeader component. */
 interface MemberHeaderProps {
   title: string;
   onClose: () => void;
 }
 
-/**
- * Renders the header section of the member sidebar with a title and close button.
- *
- * @param {MemberHeaderProps} props - Component properties.
- * @returns {JSX.Element} The rendered member header element.
- */
+/** Properties for the MemberSidebar component. */
+interface MemberSidebarProps {
+  currentUserId: string;
+  userFriendships: Array<{
+    senderId: string;
+    receiverId: string;
+    status: string;
+  }>;
+}
+
+/** Renders the header section of the member sidebar with a title and close button. */
 function MemberHeader({ title, onClose }: MemberHeaderProps) {
   return (
     <div className="h-14 border-b border-surface/50 flex items-center justify-between px-4 shrink-0">
@@ -49,17 +48,16 @@ function MemberHeader({ title, onClose }: MemberHeaderProps) {
   );
 }
 
-/**
- * Displays the list of members for the active server in a responsive sidebar or drawer layout.
- *
- * @returns {JSX.Element} The rendered member sidebar component.
- */
-export function MemberSidebar() {
+/** Displays the list of members for the active server in a responsive sidebar or drawer layout. */
+export function MemberSidebar({
+  currentUserId,
+  userFriendships = [],
+}: MemberSidebarProps) {
   const { isMembersOpen, closeMembers } = useSidebarStore();
   const { activeServer } = useActiveServer();
   const desktopSidebarRef = useRef<HTMLElement>(null);
 
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -78,7 +76,7 @@ export function MemberSidebar() {
         });
 
         if (res.ok) {
-          const data: Member[] = await res.json();
+          const data: User[] = await res.json();
           setMembers(data);
         }
       } catch (err: unknown) {
@@ -117,11 +115,7 @@ export function MemberSidebar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMembersOpen, closeMembers]);
 
-  /**
-   * Renders either a loading spinner or the populated member list depending on state.
-   *
-   * @returns {JSX.Element} The active content component.
-   */
+  /** Renders either a loading spinner or the populated member list depending on state. */
   const renderContent = () => {
     if (isLoading && members.length === 0) {
       return (
@@ -130,7 +124,13 @@ export function MemberSidebar() {
         </div>
       );
     }
-    return <MemberList members={members} />;
+    return (
+      <MemberList
+        members={members}
+        currentUserId={currentUserId}
+        userFriendships={userFriendships}
+      />
+    );
   };
 
   return (
