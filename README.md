@@ -2,6 +2,8 @@
 
 A modern, high-performance real-time chat application, designed for seamless communication.
 
+[![Deployment Status](https://git.andre-kempf.com/Chneemann/waveform/badges/workflows/deploy.yml/badge.svg?branch=main)](https://git.andre-kempf.com/Chneemann/waveform/actions)
+[![Website Status](https://img.shields.io/badge/website-online-brightgreen?style=flat-square&logo=google-chrome&logoColor=white)](https://waveform.andre-kempf.com)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
@@ -16,7 +18,7 @@ A modern, high-performance real-time chat application, designed for seamless com
 - **UI & Styling:** [React 19](https://react.dev/), [Tailwind CSS v4](https://tailwindcss.com/)
 - **Database & ORM:** [PostgreSQL](https://www.postgresql.org/) managed via [Drizzle ORM](https://orm.drizzle.team/) & Drizzle Kit (Studio included)
 - **Authentication:** [Auth.js v5 (NextAuth)](https://authjs.dev/) with Credentials Provider & bcrypt hashing
-- **DevOps & Infrastructure:** Docker & Docker Compose, Caddy Reverse Proxy, Forgejo Actions _(planned)_
+- **DevOps & Infrastructure:** Docker & Docker Compose, Caddy Reverse Proxy, Forgejo Actions (CI/CD Automated Deployment)
 
 ## 📂 Architecture & Structure
 
@@ -34,6 +36,14 @@ The project uses Next.js Route Groups without a `src/` directory to maintain a c
   - `services/` — Business logic layers and external API integration services
 - `public/` — Static assets (images, icons, fonts)
 
+## 🚀 CI/CD & Deployment
+
+Deployments are fully automated using **Forgejo Actions** and SSH:
+
+1. **Automated Trigger:** Pushes to the `main` branch trigger the SSH deployment workflow.
+2. **Database Schema Sync:** Migrations are applied in milliseconds using `drizzle-kit push` executed directly inside the active `waveform-studio` container.
+3. **Zero-Downtime Container Rebuild:** Rebuilds production Docker images (`waveform`) without disrupting live database volumes.
+
 ## 🎯 Current Status
 
-_In Progress_ — Application scaffold initialized with Next.js 16, React 19, Tailwind CSS v4, and TypeScript. Database layer fully set up with PostgreSQL and Drizzle ORM schemas, full authentication (Auth.js v5). DevOps infrastructure will be implemented in subsequent phases.
+_In Progress_ — Application scaffold initialized with Next.js 16, React 19, Tailwind CSS v4, and TypeScript. Database layer fully set up with PostgreSQL and Drizzle ORM schemas, full authentication (Auth.js v5). DevOps infrastructure implemented.
