@@ -1,6 +1,6 @@
 /**
  * @file components/layout/MemberSidebar.tsx
- * @description Member sidebar component displaying server members with desktop sliding panel and mobile drawer functionality.
+ * @description Sidebar component fetching and displaying the server member list with responsive overlay support.
  */
 
 "use client";
@@ -11,15 +11,15 @@ import { useActiveServer } from "@/lib/context/ServerContext";
 import { MemberList } from "@/components/members/MemberList";
 import { X, Loader2 } from "lucide-react";
 import { clsx } from "clsx";
-import { User } from "@/db/schema";
+import type { User } from "@/db/schema";
 
-/** Properties for the MemberHeader component. */
+/** Props for the MemberHeader component. */
 interface MemberHeaderProps {
   title: string;
   onClose: () => void;
 }
 
-/** Renders the header section of the member sidebar with a title and close button. */
+/** Header element for the member sidebar with title and close button. */
 function MemberHeader({ title, onClose }: MemberHeaderProps) {
   return (
     <div className="h-14 border-b border-surface/50 flex items-center justify-between px-4 shrink-0">
@@ -38,7 +38,7 @@ function MemberHeader({ title, onClose }: MemberHeaderProps) {
   );
 }
 
-/** Displays the list of members for the active server in a responsive sidebar or drawer layout. */
+/** Collapsible sidebar component displaying members of the currently active server. */
 export function MemberSidebar() {
   const { isMembersOpen, closeMembers } = useSidebarStore();
   const { activeServer } = useActiveServer();
@@ -85,7 +85,14 @@ export function MemberSidebar() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
-      if (target.closest('button[title*="Mitgliederliste"]')) return;
+
+      if (
+        target.closest('button[title*="Mitgliederliste"]') ||
+        target.closest('[role="dialog"]') ||
+        target.closest(".user-profile-popover")
+      ) {
+        return;
+      }
 
       if (
         isMembersOpen &&
@@ -102,7 +109,7 @@ export function MemberSidebar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMembersOpen, closeMembers]);
 
-  /** Renders either a loading spinner or the populated member list depending on state. */
+  /** Renders loading indicator or the member list depending on state. */
   const renderContent = () => {
     if (isLoading && members.length === 0) {
       return (
@@ -116,17 +123,23 @@ export function MemberSidebar() {
 
   return (
     <>
-      {/* Desktop View */}
+      {isMembersOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 sm:hidden"
+          onClick={closeMembers}
+        />
+      )}
+
       <aside
         ref={desktopSidebarRef}
         className={clsx(
-          "hidden md:flex flex-col h-full bg-surface shrink-0 transition-all duration-300 ease-in-out overflow-hidden border-l border-surface/50",
+          "fixed inset-y-0 right-0 z-40 sm:static sm:z-20 flex flex-col h-full bg-surface shrink-0 transition-all duration-300 ease-in-out border-l border-surface/50 overflow-hidden",
           isMembersOpen
-            ? "w-60 opacity-100"
+            ? "w-full sm:w-60 opacity-100"
             : "w-0 opacity-0 pointer-events-none border-l-0",
         )}
       >
-        <div className="w-60 flex flex-col h-full">
+        <div className="w-full sm:w-60 flex flex-col h-full">
           <MemberHeader
             title="Mitgliederliste einklappen"
             onClose={closeMembers}
@@ -134,24 +147,6 @@ export function MemberSidebar() {
           <div className="flex-1 overflow-y-auto">{renderContent()}</div>
         </div>
       </aside>
-
-      {/* Mobile Backdrop & Drawer */}
-      {isMembersOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-30 md:hidden"
-          onClick={closeMembers}
-        />
-      )}
-
-      <div
-        className={clsx(
-          "fixed inset-y-0 right-0 z-40 flex flex-col h-full w-screen sm:w-64 bg-surface transition-transform duration-200 ease-in-out md:hidden shadow-2xl border-l border-surface/50",
-          isMembersOpen ? "translate-x-0" : "translate-x-full",
-        )}
-      >
-        <MemberHeader title="Schließen" onClose={closeMembers} />
-        <div className="flex-1 overflow-y-auto">{renderContent()}</div>
-      </div>
     </>
   );
 }
