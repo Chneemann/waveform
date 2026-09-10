@@ -13,7 +13,6 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatMessages } from "@/components/chat/ChatMessages";
 import type { MessageWithMember } from "@/components/chat/ChatItem";
 import { isValidUuid } from "@/lib/utils";
-import { getUserFriendships } from "@/lib/services/friends.service";
 import AppFooter from "@/components/layout/AppFooter";
 
 /** Renders the direct message conversation page with header, message history, and input field. */
@@ -35,8 +34,8 @@ export default async function DirectMessagePage({
     redirect("/login");
   }
 
-  // 3. Database Queries
-  const [conversation, rawMessages, friendships] = await Promise.all([
+  // 3. Database Queries (Freundschaften werden nun global im Layout geladen)
+  const [conversation, rawMessages] = await Promise.all([
     db.query.conversations.findFirst({
       where: and(
         eq(conversations.id, conversationId),
@@ -57,7 +56,6 @@ export default async function DirectMessagePage({
       },
       orderBy: (dm, { asc }) => [asc(dm.createdAt)],
     }),
-    getUserFriendships(session.user.id),
   ]);
 
   if (!conversation) {
@@ -90,8 +88,6 @@ export default async function DirectMessagePage({
         type="dm"
         name={partner.username}
         initialMessages={initialMessages}
-        currentUserId={session.user.id}
-        userFriendships={friendships}
       />
 
       <ChatInput

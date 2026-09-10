@@ -13,6 +13,7 @@ import { MemberSidebar } from "@/components/layout/MemberSidebar";
 import { ServerProvider } from "@/lib/context/ServerContext";
 import { redirect } from "next/navigation";
 import { getUserFriendships } from "@/lib/services/friends.service";
+import { UserProvider } from "@/lib/context/UserContext";
 
 /** Renders the primary application layout with authentication checks, database fetching, and sidebar structure. */
 export default async function AppLayout({
@@ -30,16 +31,7 @@ export default async function AppLayout({
 
   // Parallel Loading: User Details, Servers & DM-Conversations
   const [[currentUser], userServers, userConversations] = await Promise.all([
-    db
-      .select({
-        id: users.id,
-        username: users.username,
-        color: users.color,
-        status: users.status,
-      })
-      .from(users)
-      .where(eq(users.id, currentUserId))
-      .limit(1),
+    db.select().from(users).where(eq(users.id, currentUserId)).limit(1),
     getUserServers(currentUserId),
     db.query.conversations.findMany({
       where: or(
@@ -78,19 +70,18 @@ export default async function AppLayout({
   ]);
 
   return (
-    <ServerProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
-        <AppSidebar
-          servers={userServers}
-          conversations={formattedConversations}
-          user={currentUser}
-        />
-        <div className="flex-1 flex min-w-0">{children}</div>
-        <MemberSidebar
-          currentUserId={currentUserId}
-          userFriendships={friendships}
-        />
-      </div>
-    </ServerProvider>
+    <UserProvider currentUser={currentUser} friendships={friendships}>
+      <ServerProvider>
+        <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+          <AppSidebar
+            servers={userServers}
+            conversations={formattedConversations}
+            user={currentUser}
+          />
+          <div className="flex-1 flex min-w-0">{children}</div>
+          <MemberSidebar />
+        </div>
+      </ServerProvider>
+    </UserProvider>
   );
 }

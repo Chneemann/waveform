@@ -12,7 +12,6 @@ import { getChannelById } from "@/lib/services/channel.service";
 import { getChannelMessages } from "@/lib/services/message.service";
 import { getServerById } from "@/lib/services/server.service";
 import { isValidUuid } from "@/lib/utils";
-import { getUserFriendships } from "@/lib/services/friends.service";
 import AppFooter from "@/components/layout/AppFooter";
 
 /** Renders the channel chat view by validating parameters, checking user session, fetching channel data, friendships, and displaying headers, messages, and input controls. */
@@ -34,11 +33,10 @@ export default async function ChannelPage({
   }
 
   // 3. Parallel Loading of Data
-  const [server, channel, channelMessages, friendships] = await Promise.all([
+  const [server, channel, channelMessages] = await Promise.all([
     getServerById(serverId),
     getChannelById(channelId),
     getChannelMessages(channelId),
-    getUserFriendships(session.user.id),
   ]);
 
   if (!channel || !server) {
@@ -57,8 +55,6 @@ export default async function ChannelPage({
         type="chat"
         name={channel.name}
         initialMessages={channelMessages}
-        currentUserId={session.user.id}
-        userFriendships={friendships}
       />
 
       <ChatInput

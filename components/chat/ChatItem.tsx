@@ -13,6 +13,7 @@ import { ChatItemActions } from "./ChatItemActions";
 import { ChatItemEdit } from "./ChatItemEdit";
 import { UserProfilePopover } from "../ui/UserProfilePopover";
 import { useActiveServer } from "@/lib/context/ServerContext";
+import { useUser } from "@/lib/context/UserContext";
 
 /** Composite message type extending base database Message with channel/conversation details and member relation. */
 export type MessageWithMember = Omit<Message, "channelId"> & {
@@ -30,12 +31,6 @@ export type MessageWithMember = Omit<Message, "channelId"> & {
 interface ChatItemProps {
   type: "chat" | "dm";
   message: MessageWithMember;
-  userFriendships: Array<{
-    senderId: string;
-    receiverId: string;
-    status: string;
-  }>;
-  currentUserId: string;
   onDeleteSuccess?: (id: string) => void;
   onEditSuccess?: (id: string, newContent: string) => void;
 }
@@ -44,13 +39,14 @@ interface ChatItemProps {
 export function ChatItem({
   type,
   message,
-  currentUserId,
-  userFriendships,
   onDeleteSuccess,
   onEditSuccess,
 }: ChatItemProps) {
   const router = useRouter();
   const { setActiveServer } = useActiveServer();
+  const { currentUser, friendships } = useUser();
+
+  const currentUserId = currentUser.id;
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -113,15 +109,11 @@ export function ChatItem({
 
   /** Determines the friendship status between the current user and the message author. */
   const getFriendshipStatus = () => {
-    if (
-      !user?.id ||
-      user.id === currentUserId ||
-      !Array.isArray(userFriendships)
-    ) {
+    if (!user?.id || user.id === currentUserId || !Array.isArray(friendships)) {
       return null;
     }
 
-    const friendship = userFriendships.find(
+    const friendship = friendships.find(
       (f) =>
         (f.senderId === user.id && f.receiverId === currentUserId) ||
         (f.receiverId === user.id && f.senderId === currentUserId),

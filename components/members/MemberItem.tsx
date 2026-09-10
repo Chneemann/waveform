@@ -13,29 +13,22 @@ import { UserAvatar } from "../ui/UserAvatar";
 import { UserProfilePopover } from "../ui/UserProfilePopover";
 import { useActiveServer } from "@/lib/context/ServerContext";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
+import { useUser } from "@/lib/context/UserContext";
 
 /** Props for the MemberItem component. */
 interface MemberItemProps {
   member: User;
-  currentUserId: string;
-  userFriendships: Array<{
-    senderId: string;
-    receiverId: string;
-    status: string;
-  }>;
   isOffline?: boolean;
 }
 
 /** Renders an individual member item with an interactive user profile popover. */
-export function MemberItem({
-  member,
-  currentUserId,
-  userFriendships = [],
-  isOffline = false,
-}: MemberItemProps) {
+export function MemberItem({ member, isOffline = false }: MemberItemProps) {
   const router = useRouter();
   const { setActiveServer } = useActiveServer();
   const { closeMembers } = useSidebarStore();
+  const { currentUser, friendships } = useUser();
+
+  const currentUserId = currentUser.id;
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,11 +64,11 @@ export function MemberItem({
 
   /** Determines the friendship status between the logged-in user and this member. */
   const getFriendshipStatus = () => {
-    if (!member.id || member.id === currentUserId || !userFriendships) {
+    if (!member.id || member.id === currentUserId || !friendships) {
       return null;
     }
 
-    const friendship = userFriendships.find(
+    const friendship = friendships.find(
       (f) =>
         (f.senderId === member.id && f.receiverId === currentUserId) ||
         (f.receiverId === member.id && f.senderId === currentUserId),

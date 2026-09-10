@@ -1,29 +1,18 @@
 /**
  * @file components/members/MemberList.tsx
- * @description Renders categorized lists of online and offline members with their friendship statuses.
+ * @description Renders categorized lists of online and offline members using the UserContext.
  */
 
 import { useMemo } from "react";
 import { MemberItem } from "@/components/members/MemberItem";
 import { User } from "@/db/schema";
 
-/** Props for the MemberList component. */
 interface MemberListProps {
   members: User[];
-  currentUserId: string;
-  userFriendships: Array<{
-    senderId: string;
-    receiverId: string;
-    status: string;
-  }>;
 }
 
 /** Renders online and offline community members in distinct sections. */
-export function MemberList({
-  members = [],
-  currentUserId,
-  userFriendships = [],
-}: MemberListProps) {
+export function MemberList({ members = [] }: MemberListProps) {
   const { onlineMembers, offlineMembers } = useMemo(() => {
     return {
       onlineMembers: members.filter((m) => m.status !== "OFFLINE"),
@@ -40,12 +29,7 @@ export function MemberList({
         </h2>
         <div className="space-y-0.5">
           {onlineMembers.map((member) => (
-            <MemberItem
-              key={member.id}
-              member={member}
-              currentUserId={currentUserId}
-              userFriendships={userFriendships}
-            />
+            <MemberItem key={member.id} member={member} />
           ))}
           {onlineMembers.length === 0 && (
             <p className="text-xs text-muted/60 px-2 italic">
@@ -62,13 +46,7 @@ export function MemberList({
         </h2>
         <div className="space-y-0.5">
           {offlineMembers.map((member) => (
-            <MemberItem
-              key={member.id}
-              member={member}
-              currentUserId={currentUserId}
-              userFriendships={userFriendships}
-              isOffline
-            />
+            <MemberItem key={member.id} member={member} isOffline />
           ))}
         </div>
       </div>

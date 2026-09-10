@@ -19,16 +19,6 @@ interface MemberHeaderProps {
   onClose: () => void;
 }
 
-/** Properties for the MemberSidebar component. */
-interface MemberSidebarProps {
-  currentUserId: string;
-  userFriendships: Array<{
-    senderId: string;
-    receiverId: string;
-    status: string;
-  }>;
-}
-
 /** Renders the header section of the member sidebar with a title and close button. */
 function MemberHeader({ title, onClose }: MemberHeaderProps) {
   return (
@@ -49,10 +39,7 @@ function MemberHeader({ title, onClose }: MemberHeaderProps) {
 }
 
 /** Displays the list of members for the active server in a responsive sidebar or drawer layout. */
-export function MemberSidebar({
-  currentUserId,
-  userFriendships = [],
-}: MemberSidebarProps) {
+export function MemberSidebar() {
   const { isMembersOpen, closeMembers } = useSidebarStore();
   const { activeServer } = useActiveServer();
   const desktopSidebarRef = useRef<HTMLElement>(null);
@@ -124,13 +111,7 @@ export function MemberSidebar({
         </div>
       );
     }
-    return (
-      <MemberList
-        members={members}
-        currentUserId={currentUserId}
-        userFriendships={userFriendships}
-      />
-    );
+    return <MemberList members={members} />;
   };
 
   return (

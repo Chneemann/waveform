@@ -13,12 +13,6 @@ export interface ChatMessagesProps {
   type: "chat" | "dm";
   name: string;
   initialMessages: MessageWithMember[];
-  userFriendships: Array<{
-    senderId: string;
-    receiverId: string;
-    status: string;
-  }>;
-  currentUserId: string;
   onDeleteMessage?: (id: string) => void;
   onEditMessage?: (id: string, newContent: string) => void;
 }
@@ -55,8 +49,6 @@ export function ChatMessages({
   type,
   name,
   initialMessages,
-  currentUserId,
-  userFriendships,
   onDeleteMessage,
   onEditMessage,
 }: ChatMessagesProps) {
@@ -156,8 +148,6 @@ export function ChatMessages({
                 <ChatItem
                   type={type}
                   message={message}
-                  currentUserId={currentUserId}
-                  userFriendships={userFriendships}
                   onDeleteSuccess={handleDeleteMessage}
                   onEditSuccess={handleEditMessage}
                 />
