@@ -85,6 +85,7 @@ export function UserProfilePopover({
 
   return (
     <div
+      data-user-profile-popover
       ref={popoverRef}
       style={{
         position: "fixed",

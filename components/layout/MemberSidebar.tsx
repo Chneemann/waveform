@@ -47,6 +47,7 @@ export function MemberSidebar() {
   const [members, setMembers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  /** Fetches members for the active server and manages loading states. */
   useEffect(() => {
     if (!activeServer?.id) {
       setMembers([]);
@@ -82,15 +83,12 @@ export function MemberSidebar() {
     };
   }, [activeServer?.id]);
 
+  /** Closes the members sidebar when clicking outside of it */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
 
-      if (
-        target.closest('button[title*="Mitgliederliste"]') ||
-        target.closest('[role="dialog"]') ||
-        target.closest(".user-profile-popover")
-      ) {
+      if (document.querySelector("[data-user-profile-popover]") !== null) {
         return;
       }
 
