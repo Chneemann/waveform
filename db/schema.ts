@@ -1,6 +1,6 @@
 /**
  * @file db/schema.ts
- * @description Database schema definition using Drizzle ORM, containing enums, table definitions, relations, and TypeScript type exports for users, servers, members, channels, messages, conversations, direct messages and friendships.
+ * @description Database schema definition using Drizzle ORM, containing enums, table definitions, relations, and TypeScript type exports for users, servers, members, channels, categories, messages, conversations, direct messages and friendships.
  */
 
 import { relations } from "drizzle-orm";
@@ -18,14 +18,10 @@ import {
 // Enums
 // ==========================================
 
-/**
- * Enum representing member access roles within a server.
- */
+/** Enum representing member access roles within a server. */
 export const roleEnum = pgEnum("role", ["OWNER", "ADMIN", "MEMBER"]);
 
-/**
- * Enum representing online status of a user.
- */
+/** Enum representing online status of a user. */
 export const userStatusEnum = pgEnum("user_status", [
   "ONLINE",
   "OFFLINE",
@@ -33,9 +29,7 @@ export const userStatusEnum = pgEnum("user_status", [
   "DND",
 ]);
 
-/**
- * Enum representing friendship status between two users.
- */
+/** Enum representing friendship status between two users. */
 export const friendshipStatusEnum = pgEnum("friendship_status", [
   "PENDING",
   "ACCEPTED",
@@ -46,9 +40,7 @@ export const friendshipStatusEnum = pgEnum("friendship_status", [
 // Tables
 // ==========================================
 
-/**
- * Database table definition for application users.
- */
+/** Database table definition for application users. */
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   username: text("username").notNull(),
@@ -60,9 +52,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition for chat servers.
- */
+/** Database table definition for chat servers. */
 export const servers = pgTable("servers", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 32 }).notNull(),
@@ -74,9 +64,7 @@ export const servers = pgTable("servers", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition linking users to servers with specific roles.
- */
+/** Database table definition linking users to servers with specific roles. */
 export const members = pgTable("members", {
   id: uuid("id").primaryKey().defaultRandom(),
   role: roleEnum("role").default("MEMBER").notNull(),
@@ -89,22 +77,31 @@ export const members = pgTable("members", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition for text channels within servers.
- */
+/** Database table definition for text channels within servers. */
 export const channels = pgTable("channels", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 32 }).notNull(),
   serverId: uuid("server_id")
     .references(() => servers.id, { onDelete: "cascade" })
     .notNull(),
+  categoryId: uuid("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
   isDefault: boolean("is_default").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition for chat messages sent within channels by members.
- */
+/** Database table definition for channel categories within servers. */
+export const categories = pgTable("categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 32 }).notNull(),
+  serverId: uuid("server_id")
+    .references(() => servers.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/** Database table definition for chat messages sent within channels by members. */
 export const messages = pgTable("messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   content: text("content").notNull(),
@@ -118,9 +115,7 @@ export const messages = pgTable("messages", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition for friendships / friend requests between users.
- */
+/** Database table definition for friendships / friend requests between users. */
 export const friendships = pgTable("friendships", {
   id: uuid("id").primaryKey().defaultRandom(),
   status: friendshipStatusEnum("status").default("PENDING").notNull(),
@@ -134,9 +129,7 @@ export const friendships = pgTable("friendships", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition for direct message conversations between two users.
- */
+/** Database table definition for direct message conversations between two users. */
 export const conversations = pgTable("conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
   userOneId: uuid("user_one_id")
@@ -148,9 +141,7 @@ export const conversations = pgTable("conversations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/**
- * Database table definition for direct messages sent within a conversation.
- */
+/** Database table definition for direct messages sent within a conversation. */
 export const directMessages = pgTable("direct_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   content: text("content").notNull(),
@@ -168,9 +159,7 @@ export const directMessages = pgTable("direct_messages", {
 // Drizzle Relations
 // ==========================================
 
-/**
- * Relational definitions for the users table.
- */
+/** Relational definitions for the users table. */
 export const usersRelations = relations(users, ({ many }) => ({
   memberships: many(members),
   sentFriendRequests: many(friendships, { relationName: "sentFriendships" }),
@@ -186,17 +175,14 @@ export const usersRelations = relations(users, ({ many }) => ({
   directMessages: many(directMessages),
 }));
 
-/**
- * Relational definitions for the servers table.
- */
+/** Relational definitions for the servers table. */
 export const serversRelations = relations(servers, ({ many }) => ({
   channels: many(channels),
+  categories: many(categories),
   members: many(members),
 }));
 
-/**
- * Relational definitions for the members table.
- */
+/** Relational definitions for the members table. */
 export const membersRelations = relations(members, ({ one, many }) => ({
   user: one(users, { fields: [members.userId], references: [users.id] }),
   server: one(servers, {
@@ -206,20 +192,29 @@ export const membersRelations = relations(members, ({ one, many }) => ({
   messages: many(messages),
 }));
 
-/**
- * Relational definitions for the channels table.
- */
+/** Relational definitions for the channels table. */
 export const channelsRelations = relations(channels, ({ one, many }) => ({
   server: one(servers, {
     fields: [channels.serverId],
     references: [servers.id],
   }),
+  category: one(categories, {
+    fields: [channels.categoryId],
+    references: [categories.id],
+  }),
   messages: many(messages),
 }));
 
-/**
- * Relational definitions for the messages table.
- */
+/** Relational definitions for the categories table. */
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  server: one(servers, {
+    fields: [categories.serverId],
+    references: [servers.id],
+  }),
+  channels: many(channels),
+}));
+
+/** Relational definitions for the messages table. */
 export const messagesRelations = relations(messages, ({ one }) => ({
   channel: one(channels, {
     fields: [messages.channelId],
@@ -231,9 +226,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-/**
- * Relational definitions for the friendships table.
- */
+/** Relational definitions for the friendships table. */
 export const friendshipsRelations = relations(friendships, ({ one }) => ({
   sender: one(users, {
     fields: [friendships.senderId],
@@ -247,9 +240,7 @@ export const friendshipsRelations = relations(friendships, ({ one }) => ({
   }),
 }));
 
-/**
- * Relational definitions for the conversations table.
- */
+/** Relational definitions for the conversations table. */
 export const conversationsRelations = relations(
   conversations,
   ({ one, many }) => ({
@@ -267,9 +258,7 @@ export const conversationsRelations = relations(
   }),
 );
 
-/**
- * Relational definitions for the directMessages table.
- */
+/** Relational definitions for the directMessages table. */
 export const directMessagesRelations = relations(directMessages, ({ one }) => ({
   conversation: one(conversations, {
     fields: [directMessages.conversationId],
@@ -289,6 +278,7 @@ export type User = typeof users.$inferSelect;
 export type Server = typeof servers.$inferSelect;
 export type Member = typeof members.$inferSelect;
 export type Channel = typeof channels.$inferSelect;
+export type Category = typeof categories.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type UserStatus = (typeof userStatusEnum.enumValues)[number];
 export type Friendship = typeof friendships.$inferSelect;
