@@ -10,14 +10,7 @@ import { z } from "zod";
 
 const uuidSchema = z.uuid();
 
-/**
- * Retrieves a server along with its channels sorted chronologically if the specified user is a verified member.
- * Validates UUID formats prior to database execution to prevent database errors.
- *
- * @param {string} serverId - The unique identifier of the server to retrieve.
- * @param {string} userId - The unique identifier of the requesting user.
- * @returns {Promise<Object | null>} The server record with nested channels array, or null if the user is not a member, the server does not exist, or an invalid ID was provided.
- */
+/** Retrieves a server along with its channels and categories sorted chronologically if the specified user is a verified member. */
 export async function getServerWithChannels(serverId: string, userId: string) {
   if (
     !uuidSchema.safeParse(serverId).success ||
@@ -39,6 +32,10 @@ export async function getServerWithChannels(serverId: string, userId: string) {
         channels: {
           orderBy: (channels, { asc }) => [asc(channels.createdAt)],
         },
+        // NEU: Categories mitladen
+        categories: {
+          orderBy: (categories, { asc }) => [asc(categories.createdAt)],
+        },
       },
     });
 
@@ -49,12 +46,7 @@ export async function getServerWithChannels(serverId: string, userId: string) {
   }
 }
 
-/**
- * Fetches all servers that the specified user belongs to, including each server's sorted channels list.
- *
- * @param {string} userId - The unique identifier of the user whose servers are to be fetched.
- * @returns {Promise<Array<Object>>} An array of server objects associated with the user.
- */
+/** Fetches all servers that the specified user belongs to, including each server's sorted channels and categories list. */
 export async function getUserServers(userId: string) {
   if (!uuidSchema.safeParse(userId).success) {
     return [];
@@ -68,6 +60,10 @@ export async function getUserServers(userId: string) {
           with: {
             channels: {
               orderBy: (channels, { asc }) => [asc(channels.createdAt)],
+            },
+            // NEU: Categories mitladen
+            categories: {
+              orderBy: (categories, { asc }) => [asc(categories.createdAt)],
             },
           },
         },
@@ -83,12 +79,7 @@ export async function getUserServers(userId: string) {
   }
 }
 
-/**
- * Retrieves a single server by its ID without checking membership.
- *
- * @param {string} serverId - The unique identifier of the server to retrieve.
- * @returns {Promise<Object | null>} The server record or null if not found/invalid ID.
- */
+/** Retrieves a single server by its ID without checking membership. */
 export async function getServerById(serverId: string) {
   if (!uuidSchema.safeParse(serverId).success) {
     return null;
