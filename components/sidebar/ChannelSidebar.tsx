@@ -209,6 +209,7 @@ export function ChannelSidebar() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         serverId={activeServer.id}
+        defaultCategoryId={selectedCategoryId}
       />
 
       <EditChannelModal

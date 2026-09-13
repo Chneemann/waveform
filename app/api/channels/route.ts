@@ -5,18 +5,11 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { channels, members } from "@/db/schema";
+import { categories, channels, members } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-/**
- * Handles the POST request to create a new channel within a specific server.
- *
- * @async
- * @function POST
- * @param {Request} req - The incoming HTTP request containing JSON payload with `name` and `serverId`.
- * @returns {Promise<NextResponse>} The created channel object with status 201, or an error response (401, 400, 403, 500).
- */
+/** Handles the POST request to create a new channel within a specific server. */
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -25,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, serverId } = await req.json();
+    const { name, serverId, categoryId } = await req.json();
 
     if (!name || !serverId) {
       return NextResponse.json(
@@ -61,12 +54,31 @@ export async function POST(req: Request) {
       );
     }
 
+    // Validate category existence and server association if provided
+    if (categoryId) {
+      const [category] = await db
+        .select()
+        .from(categories)
+        .where(
+          and(eq(categories.id, categoryId), eq(categories.serverId, serverId)),
+        )
+        .limit(1);
+
+      if (!category) {
+        return NextResponse.json(
+          { error: "Invalid category provided for this server" },
+          { status: 400 },
+        );
+      }
+    }
+
     // Create the channel in the database
     const [newChannel] = await db
       .insert(channels)
       .values({
         name: name.trim().toLowerCase().replace(/\s+/g, "-"),
         serverId,
+        categoryId: categoryId || null,
       })
       .returning();
 

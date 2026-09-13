@@ -7,59 +7,47 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 import { useActiveServer } from "@/lib/context/ServerContext";
 import { ActionButton } from "../ui/ActionButton";
 
-/**
- * Properties for the CreateChannelModal component.
- *
- * @interface CreateChannelModalProps
- * @property {boolean} isOpen - Determines whether the modal is visible.
- * @property {() => void} onClose - Callback function executed to close the modal.
- * @property {string} serverId - The unique identifier of the target server where the channel is created.
- */
+/** Properties for the CreateChannelModal component. */
 interface CreateChannelModalProps {
   isOpen: boolean;
   onClose: () => void;
   serverId: string;
+  defaultCategoryId?: string | null;
 }
 
-/**
- * Renders a modal dialog allowing users to input a name and create a new server channel.
- *
- * @param {CreateChannelModalProps} props - The component props.
- * @param {boolean} props.isOpen - Determines whether the modal is visible.
- * @param {() => void} props.onClose - Callback function executed to close the modal.
- * @param {string} props.serverId - The unique identifier of the target server where the channel is created.
- * @returns {JSX.Element | null} The rendered modal component or null if closed.
- */
+/** Renders a modal dialog allowing users to input a name and create a new server channel. */
 export function CreateChannelModal({
   isOpen,
   onClose,
   serverId,
+  defaultCategoryId = null,
 }: CreateChannelModalProps) {
   const [name, setName] = useState("");
+  const [categoryId, setCategoryId] = useState<string | null>(
+    defaultCategoryId,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
   const { addChannel } = useActiveServer();
 
+  // Update categoryId if the defaultCategoryId changes when the page opens
+  useEffect(() => {
+    setCategoryId(defaultCategoryId);
+  }, [defaultCategoryId, isOpen]);
+
   if (!isOpen) return null;
 
   const isValid = name.trim().length != 0;
   const canSave = isValid && !isLoading;
 
-  /**
-   * Handles form submission to create a new channel via the API.
-   *
-   * @async
-   * @function handleSubmit
-   * @param {React.FormEvent} e - The form submission event.
-   * @returns {Promise<void>} Resolves when the channel creation request completes.
-   */
-  const handleSubmit = async (e: React.FormEvent) => {
+  /** Handles form submission to create a new channel via the API. */
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!name.trim() || isLoading) return;
 
@@ -70,7 +58,11 @@ export function CreateChannelModal({
       const response = await fetch("/api/channels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, serverId }),
+        body: JSON.stringify({
+          name,
+          serverId,
+          categoryId: categoryId || null,
+        }),
       });
 
       if (!response.ok) {
