@@ -12,6 +12,7 @@ import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { CreateChannelModal } from "@/components/modals/CreateChannelModal";
 import { CreateCategoryModal } from "@/components/modals/CreateCategoryModal";
 import { EditChannelModal } from "@/components/modals/EditChannelModal";
+import { EditCategoryModal } from "@/components/modals/EditCategoryModal";
 import {
   ChevronDown,
   ChevronRight,
@@ -20,7 +21,7 @@ import {
   Plus,
   Settings,
 } from "lucide-react";
-import type { Channel } from "@/db/schema";
+import type { Category, Channel } from "@/db/schema";
 import Link from "next/link";
 
 /** Renders the channel navigation sidebar for the active server. */
@@ -29,6 +30,7 @@ export function ChannelSidebar() {
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] =
     useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
@@ -60,10 +62,20 @@ export function ChannelSidebar() {
   };
 
   /** Opens the edit channel modal for a specific channel. */
-  const handleOpenSettings = (e: React.MouseEvent, channel: Channel) => {
+  const handleOpenChannelSettings = (e: React.MouseEvent, channel: Channel) => {
     e.preventDefault();
     e.stopPropagation();
     setEditingChannel(channel);
+  };
+
+  /** Opens the edit category modal for a specific category. */
+  const handleOpenCategorySettings = (
+    e: React.MouseEvent,
+    category: Category,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingCategory(category);
   };
 
   /** Opens the create channel modal for a specific category or uncategorized. */
@@ -106,7 +118,7 @@ export function ChannelSidebar() {
         {!channel.isDefault && (
           <button
             type="button"
-            onClick={(e) => handleOpenSettings(e, channel)}
+            onClick={(e) => handleOpenChannelSettings(e, channel)}
             className="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-white focus:outline-none transition-all cursor-pointer shrink-0 ml-2"
             aria-label="Channel Settings"
           >
@@ -177,7 +189,7 @@ export function ChannelSidebar() {
             )}
           </div>
 
-          {/* 2. Custom Kategorien */}
+          {/* Custom Categories */}
           {categoriesList.map((category) => {
             const isCollapsed = collapsedCategories[category.id];
 
@@ -197,14 +209,24 @@ export function ChannelSidebar() {
                     <span className="truncate">{category.name}</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenCreateModal(category.id)}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
-                    aria-label="Channel in Kategorie erstellen"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenCategorySettings(e, category)}
+                      className="p-0.5 rounded text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
+                      aria-label="Edit category"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCreateModal(category.id)}
+                      className="p-0.5 rounded text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
+                      aria-label="Create channel in category"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {!isCollapsed && (
@@ -223,6 +245,12 @@ export function ChannelSidebar() {
         isOpen={isCreateCategoryModalOpen}
         onClose={() => setIsCreateCategoryModalOpen(false)}
         serverId={activeServer.id}
+      />
+
+      <EditCategoryModal
+        isOpen={!!editingCategory}
+        onClose={() => setEditingCategory(null)}
+        category={editingCategory}
       />
 
       <CreateChannelModal

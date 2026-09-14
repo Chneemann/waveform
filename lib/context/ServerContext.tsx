@@ -8,20 +8,20 @@
 import { createContext, useContext, useState } from "react";
 import type { Server, Channel, Category } from "@/db/schema";
 
-/** Type definition representing a server entity along with its associated channels array. */
+/** Extended server type containing associated channels and categories. */
 export type ServerWithChannels = Server & {
   channels: Channel[];
   categories: Category[];
 };
 
-/** Represents a member within a server. */
+/** Member representation within a server context. */
 export interface ServerMember {
   id: string;
   name: string;
   isOnline?: boolean;
 }
 
-/** Interface defining the shape of the ServerContext state and update handlers. */
+/** Shape of the server context state and dispatch functions. */
 interface ServerContextType {
   activeServer: ServerWithChannels | null;
   setActiveServer: (server: ServerWithChannels | null) => void;
@@ -29,59 +29,60 @@ interface ServerContextType {
   removeChannel: (channelId: string) => void;
   updateChannel: (channel: Channel) => void;
   addCategory: (category: Category) => void;
+  updateCategory: (category: Category) => void;
+  removeCategory: (categoryId: string) => void;
   members: ServerMember[];
   setMembers: (members: ServerMember[]) => void;
 }
 
-const ServerContext = createContext<ServerContextType>({
-  activeServer: null,
-  setActiveServer: () => {},
-  addChannel: () => {},
-  removeChannel: () => {},
-  updateChannel: () => {},
-  addCategory: () => {},
-  members: [],
-  setMembers: () => {},
-});
+const ServerContext = createContext<ServerContextType | null>(null);
 
-/** Provider component that wraps the application layout to provide global access to active server state and member listings. */
+/** Provides active server, channel, and member management state to child components. */
 export function ServerProvider({ children }: { children: React.ReactNode }) {
   const [activeServer, setActiveServer] = useState<ServerWithChannels | null>(
     null,
   );
   const [members, setMembers] = useState<ServerMember[]>([]);
 
-  /** Helper function to update channels within the active server state. */
-  const updateChannels = (fn: (channels: Channel[]) => Channel[]) => {
-    setActiveServer((prev) =>
-      prev ? { ...prev, channels: fn(prev.channels) } : prev,
-    );
+  /** Updates the active server state using a partial updater function. */
+  const updateServer = (
+    fn: (prev: ServerWithChannels) => Partial<ServerWithChannels>,
+  ) => {
+    setActiveServer((prev) => (prev ? { ...prev, ...fn(prev) } : null));
   };
 
   /** Adds a new channel to the active server. */
-  const addChannel = (channel: Channel) =>
-    updateChannels((prev) => [...prev, channel]);
+  const addChannel = (ch: Channel) =>
+    updateServer((s) => ({ channels: [...s.channels, ch] }));
 
-  /** Removes a channel from the active server by its identifier. */
-  const removeChannel = (channelId: string) =>
-    updateChannels((prev) => prev.filter((c) => c.id !== channelId));
+  /** Removes a channel by ID from the active server. */
+  const removeChannel = (id: string) =>
+    updateServer((s) => ({ channels: s.channels.filter((c) => c.id !== id) }));
 
-  /** Updates an existing channel within the active server. */
-  const updateChannel = (updatedChannel: Channel) =>
-    updateChannels((prev) =>
-      prev.map((c) => (c.id === updatedChannel.id ? updatedChannel : c)),
-    );
+  /** Updates an existing channel in the active server. */
+  const updateChannel = (ch: Channel) =>
+    updateServer((s) => ({
+      channels: s.channels.map((c) => (c.id === ch.id ? ch : c)),
+    }));
 
-  const addCategory = (category: Category) => {
-    setActiveServer((prev) =>
-      prev
-        ? {
-            ...prev,
-            categories: [...(prev.categories || []), category],
-          }
-        : prev,
-    );
-  };
+  /** Adds a new category to the active server. */
+  const addCategory = (cat: Category) =>
+    updateServer((s) => ({ categories: [...(s.categories || []), cat] }));
+
+  /** Updates an existing category in the active server. */
+  const updateCategory = (cat: Category) =>
+    updateServer((s) => ({
+      categories: s.categories.map((c) => (c.id === cat.id ? cat : c)),
+    }));
+
+  /** Removes a category by ID and unassigns its channels. */
+  const removeCategory = (id: string) =>
+    updateServer((s) => ({
+      categories: s.categories.filter((c) => c.id !== id),
+      channels: s.channels.map((c) =>
+        c.categoryId === id ? { ...c, categoryId: null } : c,
+      ),
+    }));
 
   return (
     <ServerContext.Provider
@@ -92,6 +93,8 @@ export function ServerProvider({ children }: { children: React.ReactNode }) {
         removeChannel,
         updateChannel,
         addCategory,
+        updateCategory,
+        removeCategory,
         members,
         setMembers,
       }}
@@ -101,7 +104,7 @@ export function ServerProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Custom hook to access the active server context. */
+/** Custom hook to consume active server context state. */
 export function useActiveServer() {
   const context = useContext(ServerContext);
   if (!context) {
