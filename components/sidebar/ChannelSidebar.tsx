@@ -10,10 +10,12 @@ import { useParams } from "next/navigation";
 import { useActiveServer } from "@/lib/context/ServerContext";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { CreateChannelModal } from "@/components/modals/CreateChannelModal";
+import { CreateCategoryModal } from "@/components/modals/CreateCategoryModal";
 import { EditChannelModal } from "@/components/modals/EditChannelModal";
 import {
   ChevronDown,
   ChevronRight,
+  FolderPlus,
   PanelLeftClose,
   Plus,
   Settings,
@@ -24,6 +26,8 @@ import Link from "next/link";
 /** Renders the channel navigation sidebar for the active server. */
 export function ChannelSidebar() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] =
+    useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
@@ -119,14 +123,24 @@ export function ChannelSidebar() {
         {/* Server Header */}
         <div className="h-14 border-b border-background flex items-center justify-between px-4 font-bold text-white shadow-sm shrink-0">
           <span className="truncate">{activeServer.name}</span>
-          <button
-            type="button"
-            onClick={toggleNav}
-            title="Collapse the sidebar"
-            className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer shrink-0"
-          >
-            <PanelLeftClose className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setIsCreateCategoryModalOpen(true)}
+              title="Create Category"
+              className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer shrink-0"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={toggleNav}
+              title="Collapse the sidebar"
+              className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer shrink-0"
+            >
+              <PanelLeftClose className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Channel List */}
@@ -205,6 +219,12 @@ export function ChannelSidebar() {
       </div>
 
       {/* Modals */}
+      <CreateCategoryModal
+        isOpen={isCreateCategoryModalOpen}
+        onClose={() => setIsCreateCategoryModalOpen(false)}
+        serverId={activeServer.id}
+      />
+
       <CreateChannelModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
