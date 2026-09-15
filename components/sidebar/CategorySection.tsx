@@ -1,17 +1,18 @@
 /**
  * @file components/sidebar/CategorySection.tsx
- * @description Sub-component for rendering a category group and its list of channels.
+ * @description Sub-component for rendering a category group and its list of channels with persistent collapse state and animations.
  */
 
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Plus, Settings } from "lucide-react";
+import { ChevronDown, Plus, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChannelItem } from "./ChannelItem";
 import type { Channel } from "@/db/schema";
+import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 
-/** Props for the CategorySection component. */
 interface CategorySectionProps {
+  id: string;
   title: string;
   channels: Channel[];
   currentChannelId: string;
@@ -22,8 +23,9 @@ interface CategorySectionProps {
   onEditCategory?: () => void;
 }
 
-/** Renders a collapsible category section containing channels and contextual actions. */
+/** Renders a collapsible category section with persistent collapse state and smooth animation. */
 export function CategorySection({
+  id,
   title,
   channels,
   currentChannelId,
@@ -33,23 +35,27 @@ export function CategorySection({
   onEditChannel,
   onEditCategory,
 }: CategorySectionProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useLocalStorage(
+    `category_collapsed_${id}`,
+    false,
+  );
 
-  /** Handles closing mobile navigation when clicking a channel. */
+  const toggleCollapsed = () => {
+    setIsCollapsed((prev) => !prev);
+  };
+
   const handleChannelClick = () => {
     if (!window.matchMedia("(min-width: 768px)").matches) {
       onCloseNav();
     }
   };
 
-  /** Opens settings for a specific channel. */
   const handleOpenChannelSettings = (e: React.MouseEvent, channel: Channel) => {
     e.preventDefault();
     e.stopPropagation();
     onEditChannel(channel);
   };
 
-  /** Opens settings for the current category. */
   const handleOpenCategorySettings = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -61,14 +67,16 @@ export function CategorySection({
       <div className="flex items-center justify-between text-xs font-semibold text-muted px-1 py-1 uppercase tracking-wider group">
         <button
           type="button"
-          onClick={() => setIsCollapsed((prev) => !prev)}
+          onClick={toggleCollapsed}
           className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer min-w-0 truncate"
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          ) : (
-            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-          )}
+          <motion.div
+            animate={{ rotate: isCollapsed ? -90 : 0 }}
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+            className="shrink-0"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+          </motion.div>
           <span className="truncate">{title}</span>
         </button>
 
@@ -94,20 +102,28 @@ export function CategorySection({
         </div>
       </div>
 
-      {!isCollapsed && (
-        <div className="space-y-0.5 pl-2">
-          {channels.map((channel) => (
-            <ChannelItem
-              key={channel.id}
-              channel={channel}
-              serverId={serverId}
-              isActive={currentChannelId === channel.id}
-              onChannelClick={handleChannelClick}
-              onOpenSettings={handleOpenChannelSettings}
-            />
-          ))}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden space-y-0.5 pl-2"
+          >
+            {channels.map((channel) => (
+              <ChannelItem
+                key={channel.id}
+                channel={channel}
+                serverId={serverId}
+                isActive={currentChannelId === channel.id}
+                onChannelClick={handleChannelClick}
+                onOpenSettings={handleOpenChannelSettings}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

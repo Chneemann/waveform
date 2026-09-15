@@ -74,7 +74,9 @@ export function ChannelSidebar() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-3 space-y-4 min-w-0">
+          {/* Uncategorized channels */}
           <CategorySection
+            id="uncategorized"
             title="Text Channels"
             channels={uncategorizedChannels}
             currentChannelId={currentChannelId}
@@ -84,9 +86,11 @@ export function ChannelSidebar() {
             onEditChannel={setEditingChannel}
           />
 
+          {/* Custom categories */}
           {categories.map((category) => (
             <CategorySection
               key={category.id}
+              id={category.id}
               title={category.name}
               channels={category.channels}
               currentChannelId={currentChannelId}
