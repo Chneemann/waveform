@@ -19,44 +19,23 @@ import {
   DirectMessageSidebar,
   SidebarConversation,
 } from "../sidebar/DirectMessageSidebar";
+import { usePathname } from "next/navigation";
 
-/**
- * Properties representing the user in the sidebar.
- *
- * @interface SidebarUser
- * @property {string} username - The display name of the user.
- * @property {string} color - The custom color assigned to the user's avatar or profile.
- * @property {UserStatus} status - The current online status of the user.
- */
+/** Properties representing the user in the sidebar. */
 export interface SidebarUser {
   username: string;
   color: string;
   status: UserStatus;
 }
 
-/**
- * Properties for the AppSidebar component.
- *
- * @interface AppSidebarProps
- * @property {ServerWithChannels[]} servers - List of available servers including their channels.
- * @property {SidebarConversation[]} conversations - List of direct message conversations.
- * @property {SidebarUser} user - Information about the currently authenticated user.
- */
+/** Properties for the AppSidebar component. */
 interface AppSidebarProps {
   servers: ServerWithChannels[];
   conversations: SidebarConversation[];
   user: SidebarUser;
 }
 
-/**
- * Renders the responsive application sidebar containing server navigation, channel lists, and user profile.
- *
- * @param {AppSidebarProps} props - The component props.
- * @param {ServerWithChannels[]} props.servers - List of available servers including their channels.
- * @param {SidebarConversation[]} props.conversations - List of direct message conversations.
- * @param {SidebarUser} props.user - Information about the currently authenticated user.
- * @returns {JSX.Element} The rendered mobile overlay and responsive sidebar structure.
- */
+/**Renders the responsive application sidebar containing server navigation, channel lists, and user profile. */
 export function AppSidebar({
   servers,
   user,
@@ -64,10 +43,14 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { isNavOpen, closeAll } = useSidebarStore();
   const { activeServer } = useActiveServer();
+  const pathname = usePathname();
+
+  const isServerRoute = pathname?.startsWith("/servers");
+  const isDirectMessageView = !isServerRoute && !activeServer;
 
   return (
     <>
-      {/* 1. DESKTOP VIEW (md:flex) - Collapses flexibly via transition/width */}
+      {/* 1. DESKTOP VIEW (md:flex) */}
       <aside
         className={clsx(
           "hidden md:flex flex-col h-full bg-surface shrink-0 transition-all duration-300 ease-in-out overflow-hidden border-r border-background",
@@ -76,7 +59,7 @@ export function AppSidebar({
       >
         <div className="flex flex-1 min-h-0 w-78">
           <ServerSidebar servers={servers} />
-          {!activeServer ? (
+          {isDirectMessageView ? (
             <DirectMessageSidebar conversations={conversations} />
           ) : (
             <ChannelSidebar />
@@ -87,7 +70,7 @@ export function AppSidebar({
         </div>
       </aside>
 
-      {/* 2. MOBILE VIEW (md:hidden) - Functions as a slide-out drawer */}
+      {/* 2. MOBILE VIEW (md:hidden) */}
       {isNavOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-30 md:hidden"
@@ -103,7 +86,7 @@ export function AppSidebar({
       >
         <div className="flex flex-1 min-h-0 w-full">
           <ServerSidebar servers={servers} />
-          {!activeServer ? (
+          {isDirectMessageView ? (
             <DirectMessageSidebar conversations={conversations} />
           ) : (
             <ChannelSidebar />
