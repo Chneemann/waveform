@@ -6,12 +6,13 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import type { Server, Channel, Category } from "@/db/schema";
+import type { Server, Channel, Category, User, Member } from "@/db/schema";
 
 /** Extended server type containing associated channels and categories. */
 export type ServerWithChannels = Server & {
   channels: Channel[];
   categories: Category[];
+  members: User[];
 };
 
 /** Member representation within a server context. */

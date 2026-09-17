@@ -10,8 +10,8 @@ import { z } from "zod";
 
 const uuidSchema = z.uuid();
 
-/** Retrieves a server along with its channels and categories sorted chronologically if the specified user is a verified member. */
-export async function getServerWithChannels(serverId: string, userId: string) {
+/** Retrieves a server along with its channels, categories and members sorted chronologically if the specified user is a verified member. */
+export async function getUserServer(serverId: string, userId: string) {
   if (
     !uuidSchema.safeParse(serverId).success ||
     !uuidSchema.safeParse(userId).success
@@ -32,21 +32,30 @@ export async function getServerWithChannels(serverId: string, userId: string) {
         channels: {
           orderBy: (channels, { asc }) => [asc(channels.createdAt)],
         },
-        // NEU: Categories mitladen
         categories: {
           orderBy: (categories, { asc }) => [asc(categories.createdAt)],
+        },
+        members: {
+          with: {
+            user: true,
+          },
         },
       },
     });
 
-    return server ?? null;
+    if (!server) return null;
+
+    return {
+      ...server,
+      members: server.members.map((m) => m.user).filter(Boolean),
+    };
   } catch (error) {
     console.error(`Error fetching server ${serverId}:`, error);
     return null;
   }
 }
 
-/** Fetches all servers that the specified user belongs to, including each server's sorted channels and categories list. */
+/** Fetches all servers that the specified user belongs to, including each server's sorted channels, categories, and members. */
 export async function getUserServers(userId: string) {
   if (!uuidSchema.safeParse(userId).success) {
     return [];
@@ -61,9 +70,13 @@ export async function getUserServers(userId: string) {
             channels: {
               orderBy: (channels, { asc }) => [asc(channels.createdAt)],
             },
-            // NEU: Categories mitladen
             categories: {
               orderBy: (categories, { asc }) => [asc(categories.createdAt)],
+            },
+            members: {
+              with: {
+                user: true,
+              },
             },
           },
         },
@@ -71,8 +84,16 @@ export async function getUserServers(userId: string) {
     });
 
     return userMemberships
-      .map((membership) => membership.server)
-      .filter(Boolean);
+      .map((membership) => {
+        if (!membership.server) return null;
+        return {
+          ...membership.server,
+          members: membership.server.members.map((m) => m.user).filter(Boolean),
+        };
+      })
+      .filter((server): server is NonNullable<typeof server> =>
+        Boolean(server),
+      );
   } catch (error) {
     console.error(`Error fetching servers for user ${userId}:`, error);
     return [];

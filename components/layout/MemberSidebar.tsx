@@ -1,17 +1,16 @@
 /**
  * @file components/layout/MemberSidebar.tsx
- * @description Sidebar component fetching and displaying the server member list with responsive overlay support.
+ * @description Sidebar component displaying the server member list directly from activeServer context.
  */
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { useActiveServer } from "@/lib/context/ServerContext";
 import { MemberList } from "@/components/members/MemberList";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 import { clsx } from "clsx";
-import type { User } from "@/db/schema";
 
 /** Props for the MemberHeader component. */
 interface MemberHeaderProps {
@@ -19,7 +18,7 @@ interface MemberHeaderProps {
   onClose: () => void;
 }
 
-/** Header element for the member sidebar with title and close button. */
+/** Header component for the member sidebar with close button. */
 function MemberHeader({ title, onClose }: MemberHeaderProps) {
   return (
     <div className="h-14 border-b border-surface/50 flex items-center justify-between px-4 shrink-0">
@@ -38,52 +37,14 @@ function MemberHeader({ title, onClose }: MemberHeaderProps) {
   );
 }
 
-/** Collapsible sidebar component displaying members of the currently active server. */
+/** Sidebar component displaying active server members with responsive drawer behavior. */
 export function MemberSidebar() {
   const { isMembersOpen, closeMembers } = useSidebarStore();
   const { activeServer } = useActiveServer();
   const desktopSidebarRef = useRef<HTMLElement>(null);
+  const members = activeServer?.members ?? [];
 
-  const [members, setMembers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  /** Fetches members for the active server and manages loading states. */
-  useEffect(() => {
-    if (!activeServer?.id) {
-      setMembers([]);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    async function fetchMembers() {
-      try {
-        setIsLoading(true);
-        const res = await fetch(`/api/servers/${activeServer?.id}/members`, {
-          signal: controller.signal,
-        });
-
-        if (res.ok) {
-          const data: User[] = await res.json();
-          setMembers(data);
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name !== "AbortError") {
-          console.error("Error loading members:", err);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchMembers();
-
-    return () => {
-      controller.abort();
-    };
-  }, [activeServer?.id]);
-
-  /** Closes the members sidebar when clicking outside of it */
+  /** Closes the members sidebar when clicking outside of it. */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
@@ -106,18 +67,6 @@ export function MemberSidebar() {
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMembersOpen, closeMembers]);
-
-  /** Renders loading indicator or the member list depending on state. */
-  const renderContent = () => {
-    if (isLoading && members.length === 0) {
-      return (
-        <div className="flex items-center justify-center p-8 text-muted">
-          <Loader2 className="w-5 h-5 animate-spin" />
-        </div>
-      );
-    }
-    return <MemberList members={members} />;
-  };
 
   return (
     <>
@@ -142,7 +91,9 @@ export function MemberSidebar() {
             title="Mitgliederliste einklappen"
             onClose={closeMembers}
           />
-          <div className="flex-1 overflow-y-auto">{renderContent()}</div>
+          <div className="flex-1 overflow-y-auto">
+            <MemberList members={members} />
+          </div>
         </div>
       </aside>
     </>

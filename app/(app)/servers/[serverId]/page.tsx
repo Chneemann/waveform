@@ -4,7 +4,7 @@
  */
 
 import { auth } from "@/auth";
-import { getServerWithChannels } from "@/lib/services/server.service";
+import { getUserServer } from "@/lib/services/server.service";
 import { redirect } from "next/navigation";
 
 export default async function ServerPage({
@@ -17,7 +17,7 @@ export default async function ServerPage({
 
   if (!session?.user?.id) redirect("/login");
 
-  const server = await getServerWithChannels(serverId, session.user.id);
+  const server = await getUserServer(serverId, session.user.id);
 
   if (!server) redirect("/");
 
