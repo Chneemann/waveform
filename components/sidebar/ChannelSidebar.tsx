@@ -14,7 +14,7 @@ import { CreateCategoryModal } from "@/components/modals/CreateCategoryModal";
 import { EditChannelModal } from "@/components/modals/EditChannelModal";
 import { EditCategoryModal } from "@/components/modals/EditCategoryModal";
 import { CategorySection } from "./CategorySection";
-import { FolderPlus, PanelLeftClose } from "lucide-react";
+import { PanelLeftClose } from "lucide-react";
 import type { Category, Channel } from "@/db/schema";
 
 /** Renders the channel sidebar navigation for the active server. */
@@ -55,13 +55,6 @@ export function ChannelSidebar() {
         <div className="h-14 border-b border-background flex items-center justify-between px-4 font-bold text-white shadow-sm shrink-0">
           <span className="truncate">{activeServer.name}</span>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setIsCreateCategoryOpen(true)}
-              className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer shrink-0"
-            >
-              <FolderPlus className="w-4 h-4" />
-            </button>
             <button
               type="button"
               onClick={toggleNav}
