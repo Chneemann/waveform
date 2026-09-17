@@ -8,14 +8,19 @@
 import { createContext, useContext, useState } from "react";
 import type { Server, Channel, Category, User, Member } from "@/db/schema";
 
-/** Extended server type containing associated channels and categories. */
+/** Member type combining User details with server Role. */
+export type ServerMemberWithUser = User & {
+  role: Member["role"];
+};
+
+/** Server type including associated channels, categories, and members. */
 export type ServerWithChannels = Server & {
   channels: Channel[];
   categories: Category[];
-  members: User[];
+  members: ServerMemberWithUser[];
 };
 
-/** Member representation within a server context. */
+/** Simplified member representation within server context. */
 export interface ServerMember {
   id: string;
   name: string;

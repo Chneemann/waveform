@@ -1,27 +1,30 @@
 /**
  * @file components/members/MemberItem.tsx
- * @description Member item component rendering user details with popover toggle for profile views and direct actions.
+ * @description Member item component rendering user details with role badge and popover toggle.
  */
 
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { User } from "@/db/schema";
 import { clsx } from "clsx";
 import { UserAvatar } from "../ui/UserAvatar";
 import { UserProfilePopover } from "../ui/UserProfilePopover";
-import { useActiveServer } from "@/lib/context/ServerContext";
+import {
+  ServerMemberWithUser,
+  useActiveServer,
+} from "@/lib/context/ServerContext";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { useUser } from "@/lib/context/UserContext";
+import { Crown, Shield } from "lucide-react";
 
 /** Props for the MemberItem component. */
 interface MemberItemProps {
-  member: User;
+  member: ServerMemberWithUser;
   isOffline?: boolean;
 }
 
-/** Renders an individual member item with an interactive user profile popover. */
+/** Renders an individual member item with an interactive user profile popover and role badge. */
 export function MemberItem({ member, isOffline = false }: MemberItemProps) {
   const router = useRouter();
   const { setActiveServer } = useActiveServer();
@@ -121,16 +124,28 @@ export function MemberItem({ member, isOffline = false }: MemberItemProps) {
         type="button"
         onClick={() => setIsProfileOpen((prev) => !prev)}
         className={clsx(
-          "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-background/50 transition-colors cursor-pointer group text-left focus:outline-none",
+          "w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-background/50 transition-colors cursor-pointer group text-left focus:outline-none",
           isOffline && "opacity-60",
         )}
       >
-        <div className="relative shrink-0">
-          <UserAvatar user={member} size="md" />
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="relative shrink-0">
+            <UserAvatar user={member} size="md" />
+          </div>
+          <span className="text-sm font-medium text-muted group-hover:text-white truncate">
+            {member.username}
+          </span>
         </div>
-        <span className="text-sm font-medium text-muted group-hover:text-white truncate">
-          {member.username}
-        </span>
+
+        {/* Rolle-Badge/Icon */}
+        <div className="shrink-0 ml-1">
+          {member.role === "OWNER" && (
+            <Crown className="w-4 h-4 text-amber-400" />
+          )}
+          {member.role === "ADMIN" && (
+            <Shield className="w-4 h-4 text-indigo-400" />
+          )}
+        </div>
       </button>
 
       {isProfileOpen && (

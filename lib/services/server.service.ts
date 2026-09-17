@@ -10,7 +10,7 @@ import { z } from "zod";
 
 const uuidSchema = z.uuid();
 
-/** Retrieves a server along with its channels, categories and members sorted chronologically if the specified user is a verified member. */
+/** Retrieves a server along with channels, categories, and members (with role). */
 export async function getUserServer(serverId: string, userId: string) {
   if (
     !uuidSchema.safeParse(serverId).success ||
@@ -47,7 +47,12 @@ export async function getUserServer(serverId: string, userId: string) {
 
     return {
       ...server,
-      members: server.members.map((m) => m.user).filter(Boolean),
+      members: server.members
+        .filter((m) => Boolean(m.user))
+        .map((m) => ({
+          ...m.user,
+          role: m.role,
+        })),
     };
   } catch (error) {
     console.error(`Error fetching server ${serverId}:`, error);
@@ -55,7 +60,7 @@ export async function getUserServer(serverId: string, userId: string) {
   }
 }
 
-/** Fetches all servers that the specified user belongs to, including each server's sorted channels, categories, and members. */
+/** Fetches all servers for a user with channels, categories, and members (with role). */
 export async function getUserServers(userId: string) {
   if (!uuidSchema.safeParse(userId).success) {
     return [];
@@ -88,7 +93,12 @@ export async function getUserServers(userId: string) {
         if (!membership.server) return null;
         return {
           ...membership.server,
-          members: membership.server.members.map((m) => m.user).filter(Boolean),
+          members: membership.server.members
+            .filter((m) => Boolean(m.user))
+            .map((m) => ({
+              ...m.user,
+              role: m.role,
+            })),
         };
       })
       .filter((server): server is NonNullable<typeof server> =>

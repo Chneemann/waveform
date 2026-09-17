@@ -5,14 +5,14 @@
 
 import { useMemo } from "react";
 import { MemberItem } from "@/components/members/MemberItem";
-import { User } from "@/db/schema";
-
-interface MemberListProps {
-  members: User[];
-}
+import { ServerMemberWithUser } from "@/lib/context/ServerContext";
 
 /** Renders online and offline community members in distinct sections. */
-export function MemberList({ members = [] }: MemberListProps) {
+export function MemberList({
+  members = [],
+}: {
+  members?: ServerMemberWithUser[];
+}) {
   const { onlineMembers, offlineMembers } = useMemo(() => {
     return {
       onlineMembers: members.filter((m) => m.status !== "OFFLINE"),
