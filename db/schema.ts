@@ -19,7 +19,12 @@ import {
 // ==========================================
 
 /** Enum representing member access roles within a server. */
-export const roleEnum = pgEnum("role", ["OWNER", "ADMIN", "MEMBER"]);
+export const roleEnum = pgEnum("role", [
+  "OWNER",
+  "MODERATOR",
+  "MEMBER",
+  "GUEST",
+]);
 
 /** Enum representing online status of a user. */
 export const userStatusEnum = pgEnum("user_status", [
@@ -67,7 +72,7 @@ export const servers = pgTable("servers", {
 /** Database table definition linking users to servers with specific roles. */
 export const members = pgTable("members", {
   id: uuid("id").primaryKey().defaultRandom(),
-  role: roleEnum("role").default("MEMBER").notNull(),
+  role: roleEnum("role").default("GUEST").notNull(),
   userId: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),

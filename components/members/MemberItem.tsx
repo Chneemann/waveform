@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 import { UserAvatar } from "../ui/UserAvatar";
@@ -16,16 +16,11 @@ import {
 } from "@/lib/context/ServerContext";
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
 import { useUser } from "@/lib/context/UserContext";
-import { Crown, Shield } from "lucide-react";
-
-/** Props for the MemberItem component. */
-interface MemberItemProps {
-  member: ServerMemberWithUser;
-  isOffline?: boolean;
-}
+import { Crown, ShieldCheck } from "lucide-react";
+import { Member } from "@/db/schema";
 
 /** Renders an individual member item with an interactive user profile popover and role badge. */
-export function MemberItem({ member, isOffline = false }: MemberItemProps) {
+export function MemberItem({ member }: { member: ServerMemberWithUser }) {
   const router = useRouter();
   const { setActiveServer } = useActiveServer();
   const { closeMembers } = useSidebarStore();
@@ -37,7 +32,13 @@ export function MemberItem({ member, isOffline = false }: MemberItemProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Close popover on click outside or ESC key press
+  /** Map of server member roles to their corresponding icon elements. */
+  const ROLE_ICONS: Partial<Record<Member["role"], ReactNode>> = {
+    OWNER: <Crown className="w-4 h-4 text-amber-400" />,
+    MODERATOR: <ShieldCheck className="w-4 h-4 text-cyan-400" />,
+  };
+
+  /** Closes popover on click outside or ESC key press. */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -125,26 +126,26 @@ export function MemberItem({ member, isOffline = false }: MemberItemProps) {
         onClick={() => setIsProfileOpen((prev) => !prev)}
         className={clsx(
           "w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-background/50 transition-colors cursor-pointer group text-left focus:outline-none",
-          isOffline && "opacity-60",
+          member.status == "OFFLINE" && "opacity-50",
         )}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative shrink-0">
             <UserAvatar user={member} size="md" />
           </div>
-          <span className="text-sm font-medium text-muted group-hover:text-white truncate">
-            {member.username}
-          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground truncate leading-tight group-hover:text-accent transition-colors">
+              {member.username}
+            </p>
+            <p className="text-xs text-muted truncate leading-tight font-medium capitalize">
+              {member.role.toLowerCase()}
+            </p>
+          </div>
         </div>
 
-        {/* Rolle-Badge/Icon */}
-        <div className="shrink-0 ml-1">
-          {member.role === "OWNER" && (
-            <Crown className="w-4 h-4 text-amber-400" />
-          )}
-          {member.role === "ADMIN" && (
-            <Shield className="w-4 h-4 text-indigo-400" />
-          )}
+        {/* Role Badges & Icons */}
+        <div className="shrink-0 ml-1 flex items-center gap-1">
+          {ROLE_ICONS[member.role]}
         </div>
       </button>
 

@@ -8,11 +8,7 @@ import { MemberItem } from "@/components/members/MemberItem";
 import { ServerMemberWithUser } from "@/lib/context/ServerContext";
 
 /** Renders online and offline community members in distinct sections. */
-export function MemberList({
-  members = [],
-}: {
-  members?: ServerMemberWithUser[];
-}) {
+export function MemberList({ members }: { members: ServerMemberWithUser[] }) {
   const { onlineMembers, offlineMembers } = useMemo(() => {
     return {
       onlineMembers: members.filter((m) => m.status !== "OFFLINE"),
@@ -46,7 +42,7 @@ export function MemberList({
         </h2>
         <div className="space-y-0.5">
           {offlineMembers.map((member) => (
-            <MemberItem key={member.id} member={member} isOffline />
+            <MemberItem key={member.id} member={member} />
           ))}
         </div>
       </div>
