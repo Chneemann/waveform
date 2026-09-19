@@ -75,7 +75,6 @@ export default async function DirectMessagePage({
     memberId: msg.senderId,
     member: {
       id: msg.sender.id,
-      role: "MEMBER",
       user: msg.sender,
     },
   }));
