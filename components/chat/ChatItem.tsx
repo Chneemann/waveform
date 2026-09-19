@@ -19,7 +19,7 @@ import { useUser } from "@/lib/context/UserContext";
 export type MessageWithMember = Omit<Message, "channelId"> & {
   channelId?: string;
   conversationId?: string;
-  type: "chat" | "dm";
+  type?: "chat" | "dm";
   member: {
     id: string;
     user: User;
