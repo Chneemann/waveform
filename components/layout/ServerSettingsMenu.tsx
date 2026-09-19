@@ -48,13 +48,13 @@ export function ServerSettingsMenu({
       <button
         type="button"
         onClick={() => setIsMenuOpen((prev) => !prev)}
-        title="Server-Optionen"
+        title="Server Options"
         className="p-1.5 rounded-md text-muted hover:text-white hover:bg-surface transition-colors cursor-pointer"
       >
         <Settings className="w-5 h-5" />
       </button>
 
-      {/* Dropdown Menü */}
+      {/* Dropdown Menu */}
       {isMenuOpen && (
         <div className="absolute right-0 mt-2 w-52 bg-surface border border-background rounded-lg shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
           <button
@@ -66,7 +66,7 @@ export function ServerSettingsMenu({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted hover:text-white hover:bg-background transition-colors text-left cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Kanal erstellen</span>
+            <span>Create Channel</span>
           </button>
 
           <button
@@ -78,7 +78,7 @@ export function ServerSettingsMenu({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted hover:text-white hover:bg-background transition-colors text-left cursor-pointer"
           >
             <FolderPlus className="w-4 h-4" />
-            <span>Kategorie erstellen</span>
+            <span>Create Category</span>
           </button>
 
           <div className="my-1 border-t border-background" />
@@ -92,7 +92,7 @@ export function ServerSettingsMenu({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted hover:text-white hover:bg-background transition-colors text-left cursor-pointer"
           >
             <Sliders className="w-4 h-4" />
-            <span>Servereinstellungen</span>
+            <span>Server Settings</span>
           </button>
         </div>
       )}
