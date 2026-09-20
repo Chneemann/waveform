@@ -28,7 +28,7 @@ jobs:
             docker compose exec -T waveform-studio npx drizzle-kit push --config=drizzle.config.ts
 
             echo "Rebuilding Docker containers..."
-            docker compose up -d --build
+            DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose up -d --build
 
             echo "Cleaning up unused Docker images..."
             docker image prune -f

@@ -1,7 +1,7 @@
-# Syntax directive specifying the Dockerfile format version.
+# Syntax directive
 # ==============================================================================
 # @file Dockerfile
-# @description Multi-stage Docker build for Next.js production deployments utilizing standalone output and secure user privileges.
+# @description Optimized multi-stage Docker build for Next.js
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -10,9 +10,11 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package descriptors and install all project dependencies
 COPY package*.json ./
-RUN npm install
+
+# Cache für npm-Packages nutzen
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 # ------------------------------------------------------------------------------
 # Stage 2: Build Application
@@ -20,16 +22,19 @@ RUN npm install
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy node_modules from the dependencies stage and source code
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Argument aus docker-compose.yml übernehmen
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 
-# Build the Next.js application for production
-RUN npm run build
+# Telemetrie ausschalten & Mehr RAM für den Build freigeben
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Next.js Build Cache persistent zwischen Docker-Builds wiederverwenden
+RUN --mount=type=cache,target=/app/.next/cache \
+    npm run build
 
 # ------------------------------------------------------------------------------
 # Stage 3: Production Execution Server
@@ -39,23 +44,19 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3003
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create a dedicated system user and group for security isolation
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy static assets and optimized standalone bundle from the build stage
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prepare local persistent storage directory with correct user permissions
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
-# Switch to non-root user
 USER nextjs
 
 EXPOSE 3003
 
-# Start the standalone Node.js server
 CMD ["node", "server.js"]
