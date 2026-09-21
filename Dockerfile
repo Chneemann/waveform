@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# Cache für npm-Packages nutzen
+# Use the cache for npm packages
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
@@ -28,11 +28,11 @@ COPY . .
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 
-# Telemetrie ausschalten & Mehr RAM für den Build freigeben
+# Disable Telemetry & Free Up More RAM for the Build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Next.js Build Cache persistent zwischen Docker-Builds wiederverwenden
+# Reusing the Next.js build cache across Docker builds
 RUN --mount=type=cache,target=/app/.next/cache \
     npm run build
 
@@ -52,6 +52,13 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy the "config" and "db" folders for drizzle-kit into the runner
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/db ./db
+
+# Install drizzle-kit & tsx globally so that npx drizzle-kit works inside the container
+RUN npm install -g drizzle-kit tsx
 
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
