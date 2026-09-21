@@ -9,6 +9,7 @@ import { LogOut, Settings } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { UserStatus } from "@/db/schema";
+import Link from "next/link";
 
 /**
  * Props for the UserPanel component.
@@ -58,13 +59,13 @@ export function UserPanel({ user }: UserPanelProps) {
         </div>
 
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className="p-1.5 text-muted hover:text-foreground focus:outline-none cursor-pointer transition-colors"
+          <Link
+            href="/settings"
+            className="p-1.5 text-muted hover:text-foreground focus:outline-none transition-colors"
             aria-label="User Settings"
           >
             <Settings className="w-4 h-4" />
-          </button>
+          </Link>
 
           <button
             type="button"
