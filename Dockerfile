@@ -53,12 +53,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy the "config" and "db" folders for drizzle-kit into the runner
+COPY --from=builder /app/node_modules ./node_modules
+
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/db ./db
-
-# Install drizzle-kit & tsx globally so that npx drizzle-kit works inside the container
-RUN npm install -g drizzle-kit tsx
 
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
