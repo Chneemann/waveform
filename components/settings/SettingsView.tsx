@@ -8,8 +8,11 @@
 import { useState } from "react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { UserStatus, User } from "@/db/schema";
-import { MEMBER_STATUS_COLOR_CLASSES } from "@/lib/constants/member.styles";
-import { UserRound } from "lucide-react";
+import {
+  MEMBER_STATUS_COLOR_CLASSES,
+  MEMBER_COLOR_OPTIONS,
+} from "@/lib/constants/member.styles";
+import { UserRound, Palette } from "lucide-react";
 
 /** Props for the SettingsView component. */
 interface SettingsViewProps {
@@ -17,10 +20,13 @@ interface SettingsViewProps {
   currentUser: User;
 }
 
-/** Renders the user settings view for profile management and status selection. */
+/** Renders the user settings view for profile management, status selection, and avatar color customization. */
 export function SettingsView({ userId, currentUser }: SettingsViewProps) {
   const [selectedStatus, setSelectedStatus] = useState<UserStatus>(
     currentUser.status,
+  );
+  const [selectedColor, setSelectedColor] = useState<string>(
+    currentUser.color || MEMBER_COLOR_OPTIONS[0],
   );
 
   const statuses: { label: string; value: UserStatus }[] = [
@@ -35,11 +41,17 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
     setSelectedStatus(newStatus);
   };
 
+  /** Updates local avatar color state on user selection. */
+  const handleColorChange = (newColor: string) => {
+    setSelectedColor(newColor);
+  };
+
   if (!currentUser) return null;
 
   const userWithUpdatedSettings = {
     ...currentUser,
     status: selectedStatus,
+    color: selectedColor,
   };
 
   return (
@@ -90,6 +102,31 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
                   />
                   {status.label}
                 </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Color Palette Selection */}
+        <div className="border-t border-muted/20 pt-6 space-y-4">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Palette className="w-4 h-4 text-muted" /> Profile Color
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            {MEMBER_COLOR_OPTIONS.map((colorClass) => {
+              const isSelected = selectedColor === colorClass;
+              return (
+                <button
+                  key={colorClass}
+                  type="button"
+                  onClick={() => handleColorChange(colorClass)}
+                  className={`w-8 h-8 rounded-full ${colorClass} transition-all flex items-center justify-center ${
+                    isSelected
+                      ? "ring-2 ring-white ring-offset-2 ring-offset-surface scale-110"
+                      : "hover:scale-105 opacity-80 hover:opacity-100 cursor-pointer"
+                  }`}
+                  aria-label={`Select ${colorClass}`}
+                />
               );
             })}
           </div>
