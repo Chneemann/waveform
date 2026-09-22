@@ -29,7 +29,7 @@ export const MEMBER_COLOR_OPTIONS = Object.keys(MEMBER_COLOR_CLASSES);
  */
 export const MEMBER_STATUS_COLOR_CLASSES: Record<UserStatus, string> = {
   ONLINE: "bg-emerald-500",
-  IDLE: "bg-amber-500",
-  DND: "bg-rose-500",
   OFFLINE: "bg-slate-500",
+  AFK: "bg-amber-500",
+  DND: "bg-rose-500",
 };

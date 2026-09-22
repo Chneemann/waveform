@@ -30,7 +30,7 @@ export const roleEnum = pgEnum("role", [
 export const userStatusEnum = pgEnum("user_status", [
   "ONLINE",
   "OFFLINE",
-  "IDLE",
+  "AFK",
   "DND",
 ]);
 
