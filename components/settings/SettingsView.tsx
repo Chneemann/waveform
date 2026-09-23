@@ -37,13 +37,31 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
   ];
 
   /** Updates local status state on user selection. */
-  const handleStatusChange = (newStatus: UserStatus) => {
+  const handleStatusChange = async (newStatus: UserStatus) => {
     setSelectedStatus(newStatus);
+    try {
+      await fetch("/api/users/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (err) {
+      console.error("Failed to update status", err);
+    }
   };
 
   /** Updates local avatar color state on user selection. */
-  const handleColorChange = (newColor: string) => {
+  const handleColorChange = async (newColor: string) => {
     setSelectedColor(newColor);
+    try {
+      await fetch("/api/users/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ color: newColor }),
+      });
+    } catch (err) {
+      console.error("Failed to update color", err);
+    }
   };
 
   if (!currentUser) return null;
