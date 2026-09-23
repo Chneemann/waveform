@@ -5,7 +5,7 @@
 
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import type { User } from "@/db/schema";
 
 /** Represents a friendship record between two users. */
@@ -19,6 +19,7 @@ interface Friendship {
 interface UserContextType {
   currentUser: User;
   friendships: Friendship[];
+  updateCurrentUser: (partialUser: Partial<User>) => void;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -26,15 +27,24 @@ const UserContext = createContext<UserContextType | null>(null);
 /** Provides user data and friendship states to child components. */
 export function UserProvider({
   children,
-  currentUser,
+  currentUser: initialUser,
   friendships,
 }: {
   children: React.ReactNode;
   currentUser: User;
   friendships: Friendship[];
 }) {
+  const [currentUser, setCurrentUser] = useState<User>(initialUser);
+
+  /** Updates local current user state dynamically. */
+  const updateCurrentUser = (partialUser: Partial<User>) => {
+    setCurrentUser((prev) => ({ ...prev, ...partialUser }));
+  };
+
   return (
-    <UserContext.Provider value={{ currentUser, friendships }}>
+    <UserContext.Provider
+      value={{ currentUser, friendships, updateCurrentUser }}
+    >
       {children}
     </UserContext.Provider>
   );

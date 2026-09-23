@@ -13,7 +13,6 @@ import {
   useActiveServer,
   type ServerWithChannels,
 } from "@/lib/context/ServerContext";
-import type { UserStatus } from "@/db/schema";
 import { clsx } from "clsx";
 import {
   DirectMessageSidebar,
@@ -21,26 +20,14 @@ import {
 } from "../sidebar/DirectMessageSidebar";
 import { usePathname } from "next/navigation";
 
-/** Properties representing the user in the sidebar. */
-export interface SidebarUser {
-  username: string;
-  color: string;
-  status: UserStatus;
-}
-
 /** Properties for the AppSidebar component. */
 interface AppSidebarProps {
   servers: ServerWithChannels[];
   conversations: SidebarConversation[];
-  user: SidebarUser;
 }
 
-/**Renders the responsive application sidebar containing server navigation, channel lists, and user profile. */
-export function AppSidebar({
-  servers,
-  user,
-  conversations = [],
-}: AppSidebarProps) {
+/** Renders the responsive application sidebar containing server navigation, channel lists, and user profile. */
+export function AppSidebar({ servers, conversations = [] }: AppSidebarProps) {
   const { isNavOpen, closeAll } = useSidebarStore();
   const { activeServer } = useActiveServer();
   const pathname = usePathname();
@@ -66,7 +53,7 @@ export function AppSidebar({
           )}
         </div>
         <div className="w-78">
-          <UserPanel user={user} />
+          <UserPanel />
         </div>
       </aside>
 
@@ -92,7 +79,7 @@ export function AppSidebar({
             <ChannelSidebar />
           )}
         </div>
-        <UserPanel user={user} />
+        <UserPanel />
       </div>
     </>
   );

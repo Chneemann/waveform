@@ -1,6 +1,6 @@
 /**
  * @file lib/context/ServerContext.tsx
- * @description Context for managing active server state and members across sidebars and mobile drawers.
+ * @description Context for managing active server state, current user state, and members across sidebars and mobile drawers.
  */
 
 "use client";
@@ -31,6 +31,9 @@ export interface ServerMember {
 interface ServerContextType {
   activeServer: ServerWithChannels | null;
   setActiveServer: (server: ServerWithChannels | null) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
+  updateCurrentUser: (partialUser: Partial<User>) => void;
   addChannel: (channel: Channel) => void;
   removeChannel: (channelId: string) => void;
   updateChannel: (channel: Channel) => void;
@@ -43,11 +46,18 @@ interface ServerContextType {
 
 const ServerContext = createContext<ServerContextType | null>(null);
 
-/** Provides active server, channel, and member management state to child components. */
-export function ServerProvider({ children }: { children: React.ReactNode }) {
+/** Provides active server, channel, user, and member management state to child components. */
+export function ServerProvider({
+  children,
+  initialUser = null,
+}: {
+  children: React.ReactNode;
+  initialUser?: User | null;
+}) {
   const [activeServer, setActiveServer] = useState<ServerWithChannels | null>(
     null,
   );
+  const [currentUser, setCurrentUser] = useState<User | null>(initialUser);
   const [members, setMembers] = useState<ServerMember[]>([]);
 
   /** Updates the active server state using a partial updater function. */
@@ -55,6 +65,19 @@ export function ServerProvider({ children }: { children: React.ReactNode }) {
     fn: (prev: ServerWithChannels) => Partial<ServerWithChannels>,
   ) => {
     setActiveServer((prev) => (prev ? { ...prev, ...fn(prev) } : null));
+  };
+
+  /** Updates the local current user state and reflects changes in active server members list. */
+  const updateCurrentUser = (partialUser: Partial<User>) => {
+    setCurrentUser((prev) => (prev ? { ...prev, ...partialUser } : null));
+
+    if (currentUser?.id) {
+      updateServer((s) => ({
+        members: s.members.map((m) =>
+          m.id === currentUser.id ? { ...m, ...partialUser } : m,
+        ),
+      }));
+    }
   };
 
   /** Adds a new channel to the active server. */
@@ -95,6 +118,9 @@ export function ServerProvider({ children }: { children: React.ReactNode }) {
       value={{
         activeServer,
         setActiveServer,
+        currentUser,
+        setCurrentUser,
+        updateCurrentUser,
         addChannel,
         removeChannel,
         updateChannel,

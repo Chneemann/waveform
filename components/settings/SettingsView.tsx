@@ -1,33 +1,22 @@
 /**
  * @file components/settings/SettingsView.tsx
- * @description Main settings container component for managing user profile and preferences.
+ * @description Settings view component for updating user profile attributes like online status and avatar color.
  */
 
 "use client";
 
-import { useState } from "react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { UserStatus, User } from "@/db/schema";
+import { UserStatus } from "@/db/schema";
 import {
   MEMBER_STATUS_COLOR_CLASSES,
   MEMBER_COLOR_OPTIONS,
 } from "@/lib/constants/member.styles";
 import { UserRound, Palette } from "lucide-react";
+import { useUser } from "@/lib/context/UserContext";
 
-/** Props for the SettingsView component. */
-interface SettingsViewProps {
-  userId: string;
-  currentUser: User;
-}
-
-/** Renders the user settings view for profile management, status selection, and avatar color customization. */
-export function SettingsView({ userId, currentUser }: SettingsViewProps) {
-  const [selectedStatus, setSelectedStatus] = useState<UserStatus>(
-    currentUser.status,
-  );
-  const [selectedColor, setSelectedColor] = useState<string>(
-    currentUser.color || MEMBER_COLOR_OPTIONS[0],
-  );
+/** Renders the user settings view allowing profile, online status, and color customizations. */
+export function SettingsView() {
+  const { currentUser, updateCurrentUser } = useUser();
 
   const statuses: { label: string; value: UserStatus }[] = [
     { label: "Online", value: "ONLINE" },
@@ -36,41 +25,17 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
     { label: "DND", value: "DND" },
   ];
 
-  /** Updates local status state on user selection. */
-  const handleStatusChange = async (newStatus: UserStatus) => {
-    setSelectedStatus(newStatus);
-    try {
-      await fetch("/api/users/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-    } catch (err) {
-      console.error("Failed to update status", err);
-    }
-  };
-
-  /** Updates local avatar color state on user selection. */
-  const handleColorChange = async (newColor: string) => {
-    setSelectedColor(newColor);
-    try {
-      await fetch("/api/users/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ color: newColor }),
-      });
-    } catch (err) {
-      console.error("Failed to update color", err);
-    }
+  /** Sends optimistic updates to context and persists profile changes to the server API. */
+  const updateProfile = (fields: Partial<typeof currentUser>) => {
+    updateCurrentUser(fields);
+    fetch("/api/users/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(fields),
+    }).catch((err) => console.error("Failed to update profile", err));
   };
 
   if (!currentUser) return null;
-
-  const userWithUpdatedSettings = {
-    ...currentUser,
-    status: selectedStatus,
-    color: selectedColor,
-  };
 
   return (
     <div className="flex flex-col h-full w-full bg-background text-white gap-6">
@@ -85,7 +50,7 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
       {/* Profile Overview Card */}
       <div className="bg-surface border border-muted/20 rounded-xl p-6 space-y-6">
         <div className="flex items-center gap-4">
-          <UserAvatar user={userWithUpdatedSettings} size="md" />
+          <UserAvatar user={currentUser} size="md" />
           <div>
             <h2 className="text-lg font-bold text-white">
               {currentUser.username}
@@ -101,14 +66,12 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {statuses.map((status) => {
-              const isSelected = selectedStatus === status.value;
-              const statusBgColor = MEMBER_STATUS_COLOR_CLASSES[status.value];
-
+              const isSelected = currentUser.status === status.value;
               return (
                 <button
                   key={status.value}
                   type="button"
-                  onClick={() => handleStatusChange(status.value)}
+                  onClick={() => updateProfile({ status: status.value })}
                   className={`flex items-center gap-2.5 p-3 rounded-lg border text-sm font-medium transition-all ${
                     isSelected
                       ? "border-accent bg-accent/10 text-white font-semibold"
@@ -116,7 +79,9 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
                   }`}
                 >
                   <span
-                    className={`w-2.5 h-2.5 rounded-full ${statusBgColor}`}
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      MEMBER_STATUS_COLOR_CLASSES[status.value]
+                    }`}
                   />
                   {status.label}
                 </button>
@@ -132,12 +97,12 @@ export function SettingsView({ userId, currentUser }: SettingsViewProps) {
           </h3>
           <div className="flex flex-wrap gap-3">
             {MEMBER_COLOR_OPTIONS.map((colorClass) => {
-              const isSelected = selectedColor === colorClass;
+              const isSelected = currentUser.color === colorClass;
               return (
                 <button
                   key={colorClass}
                   type="button"
-                  onClick={() => handleColorChange(colorClass)}
+                  onClick={() => updateProfile({ color: colorClass })}
                   className={`w-8 h-8 rounded-full ${colorClass} transition-all flex items-center justify-center ${
                     isSelected
                       ? "ring-2 ring-white ring-offset-2 ring-offset-surface scale-110"

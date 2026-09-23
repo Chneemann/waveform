@@ -76,7 +76,6 @@ export default async function AppLayout({
           <AppSidebar
             servers={userServers}
             conversations={formattedConversations}
-            user={currentUser}
           />
           <div className="flex-1 flex min-w-0">{children}</div>
           <MemberSidebar />
