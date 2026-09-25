@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { SettingsView } from "@/components/settings/SettingsView";
 import AppFooter from "@/components/layout/AppFooter";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 /** Renders the settings page layout with session validation. */
 export default async function SettingsPage() {
@@ -17,7 +18,9 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-background p-4">
+    <div className="flex p-4 flex-col h-full w-full bg-background min-h-0 overflow-hidden">
+      <AppHeader isSettings />
+
       <SettingsView />
       <AppFooter />
     </div>

@@ -6,7 +6,6 @@
 "use client";
 
 import { useUser } from "@/lib/context/UserContext";
-import { SettingsHeader } from "./SettingsHeader";
 import { SettingsProfileCard } from "./SettingsProfileCard";
 
 /** Renders the settings view layout for managing user profile settings. */
@@ -26,8 +25,7 @@ export function SettingsView() {
   if (!currentUser) return null;
 
   return (
-    <div className="flex flex-col h-full w-full bg-background text-white gap-6">
-      <SettingsHeader />
+    <div className="flex-1 overflow-y-auto flex flex-col min-h-0 py-2 mt-4">
       <SettingsProfileCard onUpdate={updateProfile} />
     </div>
   );

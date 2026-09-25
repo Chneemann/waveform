@@ -6,7 +6,13 @@
 "use client";
 
 import { useSidebarStore } from "@/lib/stores/useSidebarStore";
-import { PanelLeftOpen, PanelLeftClose, Users, Hash } from "lucide-react";
+import {
+  PanelLeftOpen,
+  PanelLeftClose,
+  Users,
+  Hash,
+  Settings,
+} from "lucide-react";
 import { ServerSettingsMenu } from "./ServerSettingsMenu";
 import { FriendsHeader, TabType } from "@/components/friends/FriendsHeader";
 
@@ -22,6 +28,7 @@ import { FriendsHeader, TabType } from "@/components/friends/FriendsHeader";
  * @property {(tab: TabType) => void} [setActiveTab] - Callback function to update the active friends tab.
  * @property {number} [allCount=0] - The total number of friends.
  * @property {number} [pendingCount=0] - The number of pending friend requests.
+ * @property {boolean} [isSettings=false] - Whether the header is rendered in the settings view.
  */
 interface AppHeaderProps {
   title?: string;
@@ -35,21 +42,11 @@ interface AppHeaderProps {
   setActiveTab?: (tab: TabType) => void;
   allCount?: number;
   pendingCount?: number;
+  isSettings?: boolean;
 }
 
 /**
  * Renders the application header with navigation controls, dynamic titles, tabs, and action buttons.
- *
- * @param {AppHeaderProps} props - The component props.
- * @param {string} [props.title] - The title of the current channel or view.
- * @param {boolean} [props.showMembersButton=false] - Whether to show the members list toggle button.
- * @param {{ id: string; name: string }} [props.server] - Optional server details object.
- * @param {boolean} [props.showFriendsTabs=false] - Whether to display the friends tabs.
- * @param {TabType} [props.activeTab] - The active friends tab.
- * @param {(tab: TabType) => void} [props.setActiveTab] - Function to change the active friends tab.
- * @param {number} [props.allCount=0] - Count of all friends.
- * @param {number} [props.pendingCount=0] - Count of pending friend requests.
- * @returns {JSX.Element} The rendered application header container.
  */
 export function AppHeader({
   title,
@@ -60,11 +57,17 @@ export function AppHeader({
   setActiveTab,
   allCount = 0,
   pendingCount = 0,
+  isSettings = false,
 }: AppHeaderProps) {
   const { isNavOpen, toggleNav, toggleMembers } = useSidebarStore();
 
   const hasContent =
-    !isNavOpen || !!title || showMembersButton || !!server || showFriendsTabs;
+    !isNavOpen ||
+    !!title ||
+    showMembersButton ||
+    !!server ||
+    showFriendsTabs ||
+    isSettings;
 
   return (
     <div
@@ -73,7 +76,7 @@ export function AppHeader({
       }`}
     >
       <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-        {/* Toggle button for navigation */}
+        {/* Toggle button for navigation (auch in Settings sichtbar, wenn eingeklappt) */}
         <button
           type="button"
           onClick={toggleNav}
@@ -89,8 +92,18 @@ export function AppHeader({
           )}
         </button>
 
+        {/* Settings View Header Title */}
+        {isSettings && (
+          <div className="flex items-center gap-1.5 ml-1 min-w-0">
+            <Settings className="w-4 h-4 text-muted shrink-0" />
+            <h1 className="font-bold text-white text-base truncate">
+              Settings
+            </h1>
+          </div>
+        )}
+
         {/* Dynamic Channel Title */}
-        {title && (
+        {!isSettings && title && (
           <div className="flex items-center gap-1.5 ml-1 min-w-0">
             <Hash className="w-4 h-4 text-muted shrink-0" />
             <h1 className="font-bold text-white text-base truncate">{title}</h1>
@@ -98,7 +111,7 @@ export function AppHeader({
         )}
 
         {/* Friends Header Component */}
-        {showFriendsTabs && setActiveTab && activeTab && (
+        {!isSettings && showFriendsTabs && setActiveTab && activeTab && (
           <FriendsHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}
