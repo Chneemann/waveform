@@ -11,6 +11,7 @@ import { UserStatus } from "@/db/schema";
 import {
   MEMBER_STATUS_COLOR_CLASSES,
   MEMBER_COLOR_OPTIONS,
+  MEMBER_STATUS_OPTIONS,
 } from "@/lib/constants/member.styles";
 import { UserRound, Palette, ChevronDown } from "lucide-react";
 import { useUser } from "@/lib/context/UserContext";
@@ -20,13 +21,6 @@ interface SettingsProfileCardProps {
   onUpdate: (fields: Partial<{ status: UserStatus; color: string }>) => void;
   defaultOpen?: boolean;
 }
-
-const STATUSES: { label: string; value: UserStatus }[] = [
-  { label: "Online", value: "ONLINE" },
-  { label: "Offline", value: "OFFLINE" },
-  { label: "AFK", value: "AFK" },
-  { label: "DND", value: "DND" },
-];
 
 /** Renders a collapsible card for managing user profile details, status, and theme color. */
 export function SettingsProfileCard({
@@ -72,7 +66,7 @@ export function SettingsProfileCard({
               <UserRound className="w-4 h-4 text-muted" /> Online Status
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {STATUSES.map((status) => {
+              {MEMBER_STATUS_OPTIONS.map((status) => {
                 const isSelected = currentUser.status === status.value;
                 return (
                   <button

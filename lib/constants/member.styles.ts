@@ -1,12 +1,11 @@
 /**
  * @file lib/constants/member.styles.ts
+ * @description Tailwind CSS color mapping constants and status options for server members.
  */
 
 import type { UserStatus } from "@/db/schema";
 
-/**
- * Shared Tailwind CSS class constants mapping available member background color keys to their respective CSS utility classes.
- */
+/** Shared Tailwind CSS class constants mapping available member background color keys to their respective CSS utility classes. */
 export const MEMBER_COLOR_CLASSES: Record<string, string> = {
   "bg-indigo-500": "bg-indigo-500",
   "bg-emerald-500": "bg-emerald-500",
@@ -18,18 +17,21 @@ export const MEMBER_COLOR_CLASSES: Record<string, string> = {
   "bg-cyan-500": "bg-cyan-500",
 };
 
-/**
- * List of available color option class names for member icon selection.
- * Dynamically generated from MEMBER_COLOR_OPTIONS to avoid duplicate maintenance.
- */
+/** List of available color option class names for member icon selection. */
 export const MEMBER_COLOR_OPTIONS = Object.keys(MEMBER_COLOR_CLASSES);
 
-/**
- * Mapping of user status keys to their respective Tailwind CSS indicator background colors.
- */
+/** Mapping of user status keys to their respective Tailwind CSS indicator background colors. */
 export const MEMBER_STATUS_COLOR_CLASSES: Record<UserStatus, string> = {
   ONLINE: "bg-emerald-500",
   OFFLINE: "bg-slate-500",
   AFK: "bg-amber-500",
   DND: "bg-rose-500",
 };
+
+/** Selectable options array for user status values and human-readable labels. */
+export const MEMBER_STATUS_OPTIONS: { label: string; value: UserStatus }[] = [
+  { label: "Online", value: "ONLINE" },
+  { label: "Offline", value: "OFFLINE" },
+  { label: "AFK", value: "AFK" },
+  { label: "DND", value: "DND" },
+];
