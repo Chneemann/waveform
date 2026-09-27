@@ -7,6 +7,7 @@
 
 import { useUser } from "@/lib/context/UserContext";
 import { SettingsProfileCard } from "./SettingsProfileCard";
+import { SettingsDeleteAccountCard } from "./SettingsDeleteAccountCard";
 
 /** Renders the settings view layout for managing user profile settings. */
 export function SettingsView() {
@@ -25,8 +26,9 @@ export function SettingsView() {
   if (!currentUser) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col min-h-0 py-2 mt-4">
+    <div className="flex-1 flex flex-col gap-4 py-4 min-h-0">
       <SettingsProfileCard onUpdate={updateProfile} />
+      <SettingsDeleteAccountCard />
     </div>
   );
 }
