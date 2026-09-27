@@ -33,7 +33,7 @@ export function SettingsProfileCard({
   if (!currentUser) return null;
 
   return (
-    <div className="bg-surface border border-muted/20 rounded-xl overflow-hidden transition-all">
+    <div className="bg-surface border border-muted/20 rounded-xl overflow-hidden transition-all shrink-0">
       {/* Clickable Header / Toggle Bar */}
       <button
         type="button"

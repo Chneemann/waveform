@@ -63,7 +63,7 @@ export function SettingsDeleteAccountCard({
   };
 
   return (
-    <div className="bg-surface border border-rose-500/20 rounded-xl overflow-hidden transition-all shrink-0">
+    <div className="bg-surface border border-muted/20 rounded-xl overflow-hidden transition-all shrink-0">
       {/* Header / Toggle Button */}
       <button
         type="button"

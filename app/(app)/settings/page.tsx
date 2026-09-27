@@ -18,9 +18,8 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="flex p-4 flex-col h-full w-full bg-background min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-background p-4 min-h-0 overflow-hidden">
       <AppHeader isSettings />
-
       <SettingsView />
       <AppFooter />
     </div>

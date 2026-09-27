@@ -26,7 +26,7 @@ export function SettingsView() {
   if (!currentUser) return null;
 
   return (
-    <div className="flex-1 flex flex-col gap-4 py-4 min-h-0">
+    <div className="flex-1 overflow-y-auto flex flex-col gap-4 py-4 min-h-0 pr-1">
       <SettingsProfileCard onUpdate={updateProfile} />
       <SettingsDeleteAccountCard />
     </div>
