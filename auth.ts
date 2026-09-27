@@ -10,9 +10,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/password";
 
-/**
- * NextAuth handlers, authentication methods, and auth utility exports.
- */
+/** NextAuth handlers, authentication methods, and auth utility exports. */
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -20,13 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      /**
-       * Authorizes user credentials against database records.
-       *
-       * @function authorize
-       * @param {Record<string, unknown> | undefined} credentials - The incoming sign-in credentials containing email and password.
-       * @returns {Promise<{ id: string } | null>} The authenticated user object containing only the user ID, or null if validation fails.
-       */
+      /** Authorizes user credentials against database records. */
       authorize: async (credentials) => {
         const email = credentials?.email as string | undefined;
         const password = credentials?.password as string | undefined;
@@ -57,30 +49,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    /**
-     * Populates the JWT token with the user ID upon initial sign in.
-     *
-     * @function jwt
-     * @param {Object} params - The callback parameters.
-     * @param {import("next-auth/jwt").JWT} params.token - The current JSON Web Token.
-     * @param {import("next-auth").User} [params.user] - The authenticated user object (available on first sign in).
-     * @returns {import("next-auth/jwt").JWT} The updated JWT token.
-     */
-    jwt({ token, user }) {
+    /** Populates the JWT token with the user ID upon initial sign in. */
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    /**
-     * Attaches the user ID from the JWT token to the active session.
-     *
-     * @function session
-     * @param {Object} params - The callback parameters.
-     * @param {import("next-auth").Session} params.session - The current user session object.
-     * @param {import("next-auth/jwt").JWT} params.token - The active JSON Web Token.
-     * @returns {import("next-auth").Session} The updated session object.
-     */
+    /** Attaches the user ID from the JWT token to the active session. */
     session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
@@ -89,14 +65,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   events: {
-    /**
-     * Updates the user's status to ONLINE and refreshes lastSeenAt upon successful sign in.
-     *
-     * @function signIn
-     * @param {Object} params - The event parameters.
-     * @param {import("next-auth").User} params.user - The signed-in user object.
-     * @returns {Promise<void>}
-     */
+    /** Updates the user's status to ONLINE and refreshes lastSeenAt upon successful sign in. */
     async signIn({ user }) {
       if (user?.id) {
         await db
@@ -106,6 +75,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             lastSeenAt: new Date(),
           })
           .where(eq(users.id, user.id));
+      }
+    },
+    /** Updates the user's status to OFFLINE upon explicit sign out. */
+    async signOut(message) {
+      if ("token" in message && message.token?.id) {
+        await db
+          .update(users)
+          .set({
+            status: "OFFLINE",
+            lastSeenAt: new Date(),
+          })
+          .where(eq(users.id, message.token.id as string))
+          .catch(() => {
+            // Silently ignore if user was already deleted from DB
+          });
       }
     },
   },
