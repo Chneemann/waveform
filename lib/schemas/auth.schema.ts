@@ -5,9 +5,7 @@
 
 import { z } from "zod";
 
-/**
- * Zod validation schema for user login credentials.
- */
+/** Zod validation schema for user login credentials. */
 export const loginSchema = z.object({
   email: z
     .string()
@@ -19,9 +17,7 @@ export const loginSchema = z.object({
     .max(72, "Password is too long"),
 });
 
-/**
- * Zod validation schema for new user registration payloads, including password confirmation matching.
- */
+/** Zod validation schema for user registration payloads with password confirmation. */
 export const registerSchema = z
   .object({
     username: z
@@ -42,3 +38,37 @@ export const registerSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+/** Zod validation schema for profile updates with optional password change matching. */
+export const profileUpdateSchema = z
+  .object({
+    username: z
+      .string()
+      .min(1, "Username is required")
+      .max(50, "Username is too long")
+      .optional(),
+    email: z
+      .string()
+      .max(255, "Email is too long")
+      .pipe(z.email("Please provide a valid email address"))
+      .optional(),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long")
+      .max(72, "Password is too long (max 72 characters)")
+      .or(z.literal(""))
+      .optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.password && data.password.length > 0) {
+        return data.password === data.confirmPassword;
+      }
+      return true;
+    },
+    {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    },
+  );
