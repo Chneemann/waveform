@@ -13,12 +13,12 @@ export default async function ImprintPage() {
 
         <div className="space-y-6 text-sm mt-4 text-foreground/80 leading-relaxed">
           {/* Information pursuant to § 5 DDG */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Information Pursuant to §
               5 DDG
             </h2>
-            <div className="font-mono text-xs bg-background/80 p-4 rounded-xl border border-surface/80 text-foreground space-y-1">
+            <div className="font-mono text-xs bg-background border border-surface/80 rounded-xl p-4 text-foreground space-y-1">
               <p className="font-semibold text-white">André Kempf</p>
               <p className="text-accent">Full-Stack Web Developer</p>
               <p className="text-muted">Großschneidersweg 2a</p>
@@ -30,11 +30,11 @@ export default async function ImprintPage() {
           </div>
 
           {/* Contact */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Contact
             </h2>
-            <div className="p-4 rounded-xl bg-background/80 border border-surface/80 font-mono text-xs">
+            <div className="p-4 bg-background border border-surface/80 rounded-xl font-mono text-xs">
               <p className="text-muted">
                 <span className="text-white">Email:</span>{" "}
                 <span className="text-accent hover:underline cursor-pointer">
@@ -45,7 +45,7 @@ export default async function ImprintPage() {
           </div>
 
           {/* Disclaimer */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-4">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Disclaimer & Legal Notes
             </h2>
@@ -85,7 +85,7 @@ export default async function ImprintPage() {
           </div>
 
           {/* Dispute Resolution */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Dispute Resolution
             </h2>

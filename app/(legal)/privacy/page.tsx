@@ -13,7 +13,7 @@ export default async function PrivacyPage() {
 
         <div className="space-y-6 text-sm mt-4 text-foreground/80 leading-relaxed">
           {/* Overview */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-4">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Data Protection at a
               Glance
@@ -41,7 +41,7 @@ export default async function PrivacyPage() {
           </div>
 
           {/* Responsible Party */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Responsible Party
               (Controller)
@@ -49,7 +49,7 @@ export default async function PrivacyPage() {
             <p className="text-muted">
               The controller responsible for data processing on this website is:
             </p>
-            <div className="font-mono text-xs bg-background/80 p-4 rounded-xl border border-surface/80 text-foreground space-y-1">
+            <div className="font-mono text-xs bg-background border border-surface/80 rounded-xl p-4 text-foreground space-y-1">
               <p className="font-semibold text-white">André Kempf</p>
               <p className="text-muted">Großschneidersweg 2a</p>
               <p className="text-muted">76149 Karlsruhe, Germany</p>
@@ -63,7 +63,7 @@ export default async function PrivacyPage() {
           </div>
 
           {/* Hosting & Server Log Files */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Hosting & Server
               Infrastructure
@@ -81,7 +81,7 @@ export default async function PrivacyPage() {
           </div>
 
           {/* Server Analytics */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Server Analytics &
               Privacy-First Tracking
@@ -120,7 +120,7 @@ export default async function PrivacyPage() {
           </div>
 
           {/* Your Rights */}
-          <div className="rounded-2xl border border-surface/80 bg-surface/30 p-6 shadow-xl space-y-3">
+          <div className="bg-surface border border-muted/20 rounded-xl p-6 shadow-xl space-y-3">
             <h2 className="text-base font-semibold text-white flex items-center gap-2 font-mono">
               <span className="text-accent">//</span> Your Rights
             </h2>
