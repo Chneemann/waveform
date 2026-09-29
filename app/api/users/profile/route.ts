@@ -8,7 +8,7 @@ import { db } from "@/db";
 import { users, UserStatus } from "@/db/schema";
 import { MEMBER_COLOR_OPTIONS } from "@/lib/constants/member.styles";
 import { hashPassword } from "@/lib/password";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 /** List of valid user status values. */
@@ -47,7 +47,7 @@ export async function PATCH(req: Request) {
 
     const updateData: Partial<typeof users.$inferInsert> = {};
 
-    // Validate status if provided (auch Gäste dürfen ihren Status/Farbe ändern)
+    // Validate status if provided
     if (status !== undefined) {
       if (!VALID_STATUSES.includes(status)) {
         return NextResponse.json(
@@ -69,7 +69,7 @@ export async function PATCH(req: Request) {
       updateData.color = color;
     }
 
-    // Validate and set username
+    // Validate and check username uniqueness
     if (username !== undefined) {
       const trimmedUsername = username.trim();
       if (!trimmedUsername) {
@@ -78,10 +78,26 @@ export async function PATCH(req: Request) {
           { status: 400 },
         );
       }
-      updateData.username = trimmedUsername;
+
+      if (trimmedUsername !== existingUser.username) {
+        const usernameTaken = await db.query.users.findFirst({
+          where: and(
+            eq(users.username, trimmedUsername),
+            ne(users.id, session.user.id),
+          ),
+        });
+
+        if (usernameTaken) {
+          return NextResponse.json(
+            { error: "Username is already taken" },
+            { status: 400 },
+          );
+        }
+        updateData.username = trimmedUsername;
+      }
     }
 
-    // Validate and set email
+    // Validate and check email uniqueness
     if (email !== undefined) {
       const trimmedEmail = email.trim().toLowerCase();
       if (!trimmedEmail.includes("@")) {
@@ -90,7 +106,23 @@ export async function PATCH(req: Request) {
           { status: 400 },
         );
       }
-      updateData.email = trimmedEmail;
+
+      if (trimmedEmail !== existingUser.email) {
+        const emailTaken = await db.query.users.findFirst({
+          where: and(
+            eq(users.email, trimmedEmail),
+            ne(users.id, session.user.id),
+          ),
+        });
+
+        if (emailTaken) {
+          return NextResponse.json(
+            { error: "Email address is already in use" },
+            { status: 400 },
+          );
+        }
+        updateData.email = trimmedEmail;
+      }
     }
 
     // Hash and set password
