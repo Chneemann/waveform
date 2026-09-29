@@ -27,8 +27,6 @@ export default function AppFooter() {
               <div key={link.href} className="flex items-center gap-2 sm:gap-4">
                 <Link
                   href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="group inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer"
                   title={link.name}
                 >
