@@ -7,8 +7,12 @@ import { FileText, ShieldCheck } from "lucide-react";
 
 /** List of legal navigation links with their corresponding route paths and icon identifiers. */
 export const LEGAL_LINKS = [
-  { name: "Imprint", href: "/imprint", iconName: "FileText" },
-  { name: "Privacy Policy", href: "/privacy", iconName: "ShieldCheck" },
+  { name: "Imprint", href: "/legal?tab=imprint", iconName: "FileText" },
+  {
+    name: "Privacy Policy",
+    href: "/legal?tab=privacy",
+    iconName: "ShieldCheck",
+  },
 ] as const;
 
 /** Mapping object linking string identifiers to their respective Lucide icon components. */
