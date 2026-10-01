@@ -6,31 +6,20 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Check } from "lucide-react";
 import {
   SERVER_COLOR_CLASSES,
   SERVER_COLOR_OPTIONS,
 } from "@/lib/constants/server.styles";
 import { ActionButton } from "../ui/ActionButton";
 
-/**
- * Properties for the CreateServerModal component.
- *
- * @interface CreateServerModalProps
- * @property {boolean} isOpen - Indicates whether the modal dialog is currently visible.
- * @property {() => void} onClose - Callback function to handle closing the modal dialog.
- */
+/** Props for the CreateServerModal component. */
 interface CreateServerModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-/**
- * Renders the modal dialog for creating a new server with custom properties.
- *
- * @param {CreateServerModalProps} props - The component props.
- * @returns {JSX.Element | null} The rendered modal component or null when hidden.
- */
+/** Renders a modal dialog to create a new server with name and accent color selection. */
 export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
   const [name, setName] = useState("");
   const [color, setColor] = useState("bg-indigo-500");
@@ -39,16 +28,11 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
 
   if (!isOpen) return null;
 
-  const isValid = name.trim().length != 0;
+  const isValid = name.trim().length !== 0;
   const canSave = isValid && !isLoading;
 
-  /**
-   * Handles server creation form submission via API POST request.
-   *
-   * @param {React.FormEvent} e - The form submission event instance.
-   * @returns {Promise<void>} Resolves when request is completed or redirects on success.
-   */
-  const handleSubmit = async (e: React.FormEvent) => {
+  /** Handles server creation form submission and redirects to the created server's channel. */
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -85,12 +69,10 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
   };
 
   return (
-    /* Outer Backdrop */
     <div
       onClick={onClose}
       className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
     >
-      {/* Inner Modal Content */}
       <div
         onClick={(e) => e.stopPropagation()}
         className="bg-surface border border-surface/50 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150"
@@ -109,7 +91,7 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
           Give your new server a name and choose an accent color.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
               Server Name
@@ -126,28 +108,40 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
-              Color
-            </label>
-            <div className="flex items-center gap-2">
-              {SERVER_COLOR_OPTIONS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-8 h-8 rounded-full ${SERVER_COLOR_CLASSES[c]} transition-transform cursor-pointer ${
-                    color === c
-                      ? "ring-2 ring-white scale-110"
-                      : "opacity-70 hover:opacity-100"
-                  }`}
-                />
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-muted uppercase tracking-wider">
+                Accent Color
+              </label>
+            </div>
+
+            <div className="grid grid-cols-8 gap-3 bg-background/50 border border-surface/80 p-3.5 rounded-2xl max-h-48 overflow-y-auto">
+              {SERVER_COLOR_OPTIONS.map((c) => {
+                const isSelected = color === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={`group relative aspect-square rounded-full ${
+                      SERVER_COLOR_CLASSES[c] || c
+                    } flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                      isSelected
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-surface scale-110 z-10 shadow-lg"
+                        : "opacity-80 hover:opacity-100 hover:scale-105"
+                    }`}
+                  >
+                    {isSelected && (
+                      <Check className="w-3.5 h-3.5 text-white drop-shadow-md stroke-3" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
 
-          <div className="flex items-center justify-end gap-3 pt-4">
+          <div className="flex items-center justify-end gap-3 pt-2">
             <ActionButton
               type="button"
               variant="secondary"
