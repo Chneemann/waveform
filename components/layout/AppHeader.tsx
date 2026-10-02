@@ -25,6 +25,7 @@ interface AppHeaderProps {
   server?: {
     id: string;
     name: string;
+    color: string;
   };
   showFriendsTabs?: boolean;
   activeTab?: TabType;
@@ -140,7 +141,11 @@ export function AppHeader({
       {/* Right Action Buttons */}
       <div className="flex items-center gap-1 shrink-0">
         {server && (
-          <ServerSettingsMenu serverId={server.id} serverName={server.name} />
+          <ServerSettingsMenu
+            serverId={server.id}
+            serverName={server.name}
+            serverColor={server.color}
+          />
         )}
 
         {showMembersButton && (

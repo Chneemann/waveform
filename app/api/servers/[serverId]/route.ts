@@ -10,16 +10,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
-/**
- * Handles PATCH requests to update an existing server's name.
- *
- * @async
- * @function PATCH
- * @param {Request} req - The incoming HTTP request object containing the updated server name in the body.
- * @param {Object} context - The route context parameters.
- * @param {Promise<{ serverId: string }>} context.params - A promise resolving to the route parameters containing the server ID.
- * @returns {Promise<NextResponse>} A JSON response containing the updated server object or an error message.
- */
+/** Handles PATCH requests to update an existing server's name. */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ serverId: string }> },
@@ -34,6 +25,7 @@ export async function PATCH(
 
     const body = await req.json().catch(() => null);
     const name = body?.name;
+    const color = body?.color;
 
     // Ensure name is present, valid string type, and not just whitespace
     if (!name || typeof name !== "string" || !name.trim()) {
@@ -49,6 +41,14 @@ export async function PATCH(
     if (trimmedName.length > 32) {
       return NextResponse.json(
         { error: "Server name cannot exceed 32 characters." },
+        { status: 400 },
+      );
+    }
+
+    // Validate color if provided
+    if (color !== undefined && (typeof color !== "string" || !color.trim())) {
+      return NextResponse.json(
+        { error: "Invalid color value provided." },
         { status: 400 },
       );
     }
@@ -72,10 +72,19 @@ export async function PATCH(
       );
     }
 
+    // Prepare fields to update
+    const updateData: { name: string; color?: string } = {
+      name: trimmedName,
+    };
+
+    if (color && typeof color === "string") {
+      updateData.color = color.trim();
+    }
+
     // Update Server
     const [updatedServer] = await db
       .update(servers)
-      .set({ name: trimmedName })
+      .set(updateData)
       .where(eq(servers.id, serverId))
       .returning();
 
@@ -90,16 +99,7 @@ export async function PATCH(
   }
 }
 
-/**
- * Handles DELETE requests to remove an existing server.
- *
- * @async
- * @function DELETE
- * @param {Request} req - The incoming HTTP request object.
- * @param {Object} context - The route context parameters.
- * @param {Promise<{ serverId: string }>} context.params - A promise resolving to the route parameters containing the server ID.
- * @returns {Promise<NextResponse>} A JSON response confirming deletion or returning an error message.
- */
+/** Handles DELETE requests to remove an existing server. */
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ serverId: string }> },

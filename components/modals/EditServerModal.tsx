@@ -1,13 +1,17 @@
 /**
  * @file components/modals/EditServerModal.tsx
- * @description Modal dialog to edit server settings or delete the server.
+ * @description Modal dialog to edit server settings (name, color) or delete the server.
  */
 
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, Loader2, Trash2 } from "lucide-react";
+import { X, Trash2, Check } from "lucide-react";
+import {
+  SERVER_COLOR_CLASSES,
+  SERVER_COLOR_OPTIONS,
+} from "@/lib/constants/server.styles";
 import { ActionButton } from "../ui/ActionButton";
 
 /**
@@ -18,31 +22,28 @@ import { ActionButton } from "../ui/ActionButton";
  * @property {() => void} onClose - Callback function triggered to close the modal.
  * @property {string} serverId - The unique identifier of the server being edited.
  * @property {string} initialName - The current name of the server.
+ * @property {string} [initialColor] - The current accent color of the server.
  */
 interface EditServerModalProps {
   isOpen: boolean;
   onClose: () => void;
   serverId: string;
   initialName: string;
+  initialColor: string;
 }
 
 /**
  * Renders a modal dialog allowing users to modify server properties or delete the server.
- *
- * @param {EditServerModalProps} props - The component props.
- * @param {boolean} props.isOpen - Determines whether the modal dialog is currently visible.
- * @param {() => void} props.onClose - Callback function triggered to close the modal.
- * @param {string} props.serverId - The unique identifier of the server.
- * @param {string} props.initialName - The current name of the server.
- * @returns {JSX.Element | null} The rendered edit server modal, or null if closed.
  */
 export function EditServerModal({
   isOpen,
   onClose,
   serverId,
   initialName,
+  initialColor,
 }: EditServerModalProps) {
   const [name, setName] = useState(initialName);
+  const [color, setColor] = useState(initialColor);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -52,21 +53,17 @@ export function EditServerModal({
 
   useEffect(() => {
     setName(initialName);
-  }, [initialName]);
+    setColor(initialColor);
+  }, [initialName, initialColor]);
 
   if (!isOpen) return null;
 
-  const isChanged = name.trim() !== initialName;
+  const isChanged = name.trim() !== initialName || color !== initialColor;
   const isValid = name.trim().length > 0;
   const canSave = isChanged && isValid && !isLoading && !isDeleting;
 
   /**
-   * Handles the asynchronous update of the server name.
-   *
-   * @async
-   * @function handleUpdate
-   * @param {React.FormEvent} e - The form submission event.
-   * @returns {Promise<void>} Resolves when the server update process completes or fails.
+   * Handles the asynchronous update of the server name and accent color.
    */
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +76,7 @@ export function EditServerModal({
       const response = await fetch(`/api/servers/${serverId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: name.trim(), color }),
       });
 
       if (!response.ok) {
@@ -96,11 +93,7 @@ export function EditServerModal({
   };
 
   /**
-   * Handles the asynchronous deletion of the server and redirects the user to the home page.
-   *
-   * @async
-   * @function handleDelete
-   * @returns {Promise<void>} Resolves when the server deletion process completes or fails.
+   * Handles the asynchronous deletion of the server.
    */
   const handleDelete = async () => {
     if (!isConfirmingDelete) {
@@ -154,7 +147,7 @@ export function EditServerModal({
           Change server details or delete this server.
         </p>
 
-        <form onSubmit={handleUpdate} className="space-y-4">
+        <form onSubmit={handleUpdate} className="space-y-5">
           <div>
             <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
               Server Name
@@ -172,9 +165,41 @@ export function EditServerModal({
             />
           </div>
 
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-muted uppercase tracking-wider">
+                Accent Color
+              </label>
+            </div>
+
+            <div className="grid grid-cols-8 gap-3 bg-background/50 border border-surface/80 p-3.5 rounded-2xl max-h-48 overflow-y-auto">
+              {SERVER_COLOR_OPTIONS.map((c) => {
+                const isSelected = color === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={`group relative aspect-square rounded-full ${
+                      SERVER_COLOR_CLASSES[c] || c
+                    } flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                      isSelected
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-surface scale-110 z-10 shadow-lg"
+                        : "opacity-80 hover:opacity-100 hover:scale-105"
+                    }`}
+                  >
+                    {isSelected && (
+                      <Check className="w-3.5 h-3.5 text-white drop-shadow-md stroke-3" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
 
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center justify-between pt-2">
             <ActionButton
               type="button"
               variant="danger"
@@ -183,7 +208,7 @@ export function EditServerModal({
               disabled={isLoading}
               icon={Trash2}
             >
-              {isConfirmingDelete ? "Sure?" : "Delete Server "}
+              {isConfirmingDelete ? "Sure?" : "Delete Server"}
             </ActionButton>
 
             <div className="flex items-center gap-2">

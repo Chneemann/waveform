@@ -15,12 +15,14 @@ import { CreateChannelModal } from "@/components/modals/CreateChannelModal";
 interface ServerSettingsMenuProps {
   serverId: string;
   serverName: string;
+  serverColor: string;
 }
 
 /** Renders a server management dropdown menu with modal triggers for channel, category, and server settings. */
 export function ServerSettingsMenu({
   serverId,
   serverName,
+  serverColor,
 }: ServerSettingsMenuProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditServerOpen, setIsEditServerOpen] = useState(false);
@@ -102,6 +104,7 @@ export function ServerSettingsMenu({
         isOpen={isEditServerOpen}
         serverId={serverId}
         initialName={serverName}
+        initialColor={serverColor}
         onClose={() => setIsEditServerOpen(false)}
       />
       <CreateCategoryModal

@@ -48,7 +48,7 @@ export default async function ChannelPage({
       <AppHeader
         title={channel.name}
         showMembersButton
-        server={{ id: server.id, name: server.name }}
+        server={{ id: server.id, name: server.name, color: server.color }}
       />
 
       <ChatMessages
