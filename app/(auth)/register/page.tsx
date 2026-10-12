@@ -1,6 +1,6 @@
 /**
  * @file app/(auth)/register/page.tsx
- * @description Client component rendering the registration page, handling form submissions, account creation logic, error handling, and navigation.
+ * @description Client component rendering the registration page, handling form submissions, client-side validation, error handling, autocomplete, and navigation.
  */
 
 "use client";
@@ -11,30 +11,34 @@ import Link from "next/link";
 import Image from "next/image";
 import { registerUser } from "@/lib/services/auth.service";
 
-/**
- * Renders the user registration interface and manages sign-up form state.
- *
- * @returns {JSX.Element} The rendered registration page component.
- */
+/** Renders the user registration interface and manages sign-up form state. */
 export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  /**
-   * Handles user registration form submission, validates form data via auth service,
-   * and navigates to summary page on successful registration.
-   *
-   * @param {React.SubmitEvent<HTMLFormElement>} event - The form submission event.
-   * @returns {Promise<void>}
-   */
-  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  /** Clears active error state when user modifies input fields. */
+  const handleInputChange = () => {
+    if (error) {
+      setError(null);
+    }
+  };
+
+  /** Handles user registration form submission, validates form data via auth service, and navigates to summary page on successful registration. */
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setLoading(true);
 
     const formData = new FormData(event.currentTarget);
     const payload = Object.fromEntries(formData.entries());
+
+    // Client-side password matching validation
+    if (payload.password !== payload.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
 
     const result = await registerUser(payload);
 
@@ -75,7 +79,11 @@ export default function RegisterPage() {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          onChange={handleInputChange}
+          className="space-y-4"
+        >
           <div>
             <label
               htmlFor="username"
@@ -90,6 +98,7 @@ export default function RegisterPage() {
               required
               placeholder="username"
               maxLength={50}
+              autoComplete="username"
               className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-foreground placeholder-neutral-500 outline-none focus:border-accent transition-colors text-sm"
             />
           </div>
@@ -108,6 +117,7 @@ export default function RegisterPage() {
               required
               placeholder="name@example.com"
               maxLength={255}
+              autoComplete="email"
               className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-foreground placeholder-neutral-500 outline-none focus:border-accent transition-colors text-sm"
             />
           </div>
@@ -126,12 +136,14 @@ export default function RegisterPage() {
               required
               placeholder="•••••••••••••"
               maxLength={72}
+              autoComplete="new-password"
               className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-foreground placeholder-neutral-500 outline-none focus:border-accent transition-colors text-sm"
             />
           </div>
+
           <div>
             <label
-              htmlFor="password"
+              htmlFor="confirmPassword"
               className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2"
             >
               Confirm Password
@@ -143,6 +155,7 @@ export default function RegisterPage() {
               required
               placeholder="•••••••••••••"
               maxLength={72}
+              autoComplete="new-password"
               className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-foreground placeholder-neutral-500 outline-none focus:border-accent transition-colors text-sm"
             />
           </div>

@@ -1,6 +1,6 @@
 /**
  * @file app/(auth)/login/page.tsx
- * @description Client component rendering the login page, handling form submission, authentication requests, error messaging, and redirection.
+ * @description Client component rendering the login page, handling form submission, authentication requests, error messaging, autocomplete, and redirection.
  */
 
 "use client";
@@ -11,11 +11,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { loginAsGuest, loginUser } from "@/lib/services/auth.service";
 
-/**
- * Renders the user login interface and manages authentication form state.
- *
- * @returns {JSX.Element} The rendered login page component.
- */
+/** Renders the user login interface and manages authentication form state. */
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -23,12 +19,15 @@ export default function LoginPage() {
     "credentials" | "guest" | null
   >(null);
 
-  /**
-   * Form submit handler extracting credentials from FormData and delegating to handleSignIn.
-   *
-   * @param {React.SubmitEvent<HTMLFormElement>} e - The form submission event.
-   */
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  /** Clears active error state when user modifies input fields. */
+  const handleInputChange = () => {
+    if (error) {
+      setError(null);
+    }
+  };
+
+  /** Form submit handler extracting credentials from FormData and delegating to handleSignIn. */
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
@@ -36,10 +35,7 @@ export default function LoginPage() {
     await handleSignIn(email, password, "credentials");
   };
 
-  /**
-   * Authenticates the user with provided credentials and redirects upon success.
-   *
-   */
+  /** Authenticates the user with provided credentials and redirects upon success. */
   const handleSignIn = async (
     email: string,
     password: string,
@@ -58,11 +54,7 @@ export default function LoginPage() {
     }
   };
 
-  /**
-   * Triggers secure guest authentication via the backend service.
-   *
-   * @async
-   */
+  /** Triggers secure guest authentication via the backend service. */
   const handleGuestLogin = async () => {
     setError(null);
     setLoadingType("guest");
@@ -106,7 +98,11 @@ export default function LoginPage() {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          onChange={handleInputChange}
+          className="space-y-4"
+        >
           <div>
             <label
               htmlFor="email"
@@ -121,6 +117,7 @@ export default function LoginPage() {
               required
               placeholder="name@example.com"
               maxLength={255}
+              autoComplete="email"
               className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-foreground placeholder-neutral-500 outline-none focus:border-accent transition-colors text-sm"
             />
           </div>
@@ -139,6 +136,7 @@ export default function LoginPage() {
               required
               placeholder="•••••••••••••"
               maxLength={72}
+              autoComplete="current-password"
               className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-foreground placeholder-neutral-500 outline-none focus:border-accent transition-colors text-sm"
             />
           </div>
@@ -148,7 +146,7 @@ export default function LoginPage() {
             disabled={loadingType !== null}
             className="w-full bg-accent hover:opacity-90 transition-opacity text-white font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer"
           >
-            {loadingType === "credentials" ? "Signing in..." : "Sign In"}{" "}
+            {loadingType === "credentials" ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
