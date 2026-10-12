@@ -1,6 +1,6 @@
 /**
  * @file app/(auth)/login/page.tsx
- * @description Client component rendering the login page, handling form submission, authentication requests, error messaging, autocomplete, and redirection.
+ * @description Client component rendering the login page, handling form submission, authentication requests, error messaging, autocomplete, form validation, and redirection.
  */
 
 "use client";
@@ -11,13 +11,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { loginAsGuest, loginUser } from "@/lib/services/auth.service";
 
-/** Renders the user login interface and manages authentication form state. */
+/** Renders the user login interface, manages authentication form state, and enforces input completion for form submission. */
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loadingType, setLoadingType] = useState<
     "credentials" | "guest" | null
   >(null);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   /** Clears active error state when user modifies input fields. */
   const handleInputChange = () => {
@@ -27,24 +32,22 @@ export default function LoginPage() {
   };
 
   /** Form submit handler extracting credentials from FormData and delegating to handleSignIn. */
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    if (!isFormValid) return;
     await handleSignIn(email, password, "credentials");
   };
 
   /** Authenticates the user with provided credentials and redirects upon success. */
   const handleSignIn = async (
-    email: string,
-    password: string,
+    loginEmail: string,
+    loginPass: string,
     type: "credentials" | "guest",
   ) => {
     setError(null);
     setLoadingType(type);
 
-    const result = await loginUser(email, password);
+    const result = await loginUser(loginEmail, loginPass);
 
     if (result.error) {
       setError(result.error);
@@ -98,11 +101,7 @@ export default function LoginPage() {
         )}
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          onChange={handleInputChange}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="email"
@@ -115,6 +114,11 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                handleInputChange();
+              }}
               placeholder="name@example.com"
               maxLength={255}
               autoComplete="email"
@@ -134,6 +138,11 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                handleInputChange();
+              }}
               placeholder="•••••••••••••"
               maxLength={72}
               autoComplete="current-password"
@@ -143,8 +152,8 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loadingType !== null}
-            className="w-full bg-accent hover:opacity-90 transition-opacity text-white font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer"
+            disabled={loadingType !== null || !isFormValid}
+            className="w-full bg-accent hover:opacity-90 transition-opacity text-white font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer disabled:cursor-not-allowed"
           >
             {loadingType === "credentials" ? "Signing in..." : "Sign In"}
           </button>

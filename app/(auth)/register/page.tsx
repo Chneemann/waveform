@@ -1,6 +1,6 @@
 /**
  * @file app/(auth)/register/page.tsx
- * @description Client component rendering the registration page, handling form submissions, client-side validation, error handling, autocomplete, and navigation.
+ * @description Client component rendering the registration page, handling form submissions, client-side validation, form completion checks, error handling, autocomplete, and navigation.
  */
 
 "use client";
@@ -11,11 +11,22 @@ import Link from "next/link";
 import Image from "next/image";
 import { registerUser } from "@/lib/services/auth.service";
 
-/** Renders the user registration interface and manages sign-up form state. */
+/** Renders the user registration interface, manages sign-up form state, and requires all fields to be filled before submission. */
 export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const isFormValid =
+    username.trim() !== "" &&
+    email.trim() !== "" &&
+    password.trim() !== "" &&
+    confirmPassword.trim() !== "";
 
   /** Clears active error state when user modifies input fields. */
   const handleInputChange = () => {
@@ -25,8 +36,9 @@ export default function RegisterPage() {
   };
 
   /** Handles user registration form submission, validates form data via auth service, and navigates to summary page on successful registration. */
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!isFormValid) return;
     setError(null);
 
     const formData = new FormData(event.currentTarget);
@@ -79,11 +91,7 @@ export default function RegisterPage() {
         )}
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          onChange={handleInputChange}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="username"
@@ -96,6 +104,11 @@ export default function RegisterPage() {
               name="username"
               type="text"
               required
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                handleInputChange();
+              }}
               placeholder="username"
               maxLength={50}
               autoComplete="username"
@@ -115,6 +128,11 @@ export default function RegisterPage() {
               name="email"
               type="email"
               required
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                handleInputChange();
+              }}
               placeholder="name@example.com"
               maxLength={255}
               autoComplete="email"
@@ -134,6 +152,11 @@ export default function RegisterPage() {
               name="password"
               type="password"
               required
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                handleInputChange();
+              }}
               placeholder="•••••••••••••"
               maxLength={72}
               autoComplete="new-password"
@@ -153,6 +176,11 @@ export default function RegisterPage() {
               name="confirmPassword"
               type="password"
               required
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                handleInputChange();
+              }}
               placeholder="•••••••••••••"
               maxLength={72}
               autoComplete="new-password"
@@ -162,8 +190,8 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-accent hover:opacity-90 transition-opacity text-white font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer"
+            disabled={loading || !isFormValid}
+            className="w-full bg-accent hover:opacity-90 transition-opacity text-white font-medium py-2.5 rounded-lg text-sm disabled:opacity-50 mt-2 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? "Register..." : "Register"}
           </button>
