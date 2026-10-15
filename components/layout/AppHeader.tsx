@@ -1,6 +1,6 @@
 /**
  * @file components/layout/AppHeader.tsx
- * @description Application top header component providing navigation controls, dynamic channel or friend tab titles, optional server settings, member list toggles, and legal views support.
+ * @description Application top header component providing navigation controls, dynamic channel or friend tab titles, optional server settings, member list toggles, legal views, and 404 support.
  */
 
 "use client";
@@ -14,6 +14,7 @@ import {
   Settings,
   FileText,
   ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
 import { ServerSettingsMenu } from "./ServerSettingsMenu";
 import { FriendsHeader, TabType } from "@/components/friends/FriendsHeader";
@@ -35,9 +36,10 @@ interface AppHeaderProps {
   isSettings?: boolean;
   isLegalImprint?: boolean;
   isLegalPrivacy?: boolean;
+  isNotFound?: boolean;
 }
 
-/** Renders the application header with navigation controls, dynamic titles, tabs, and action buttons. */
+/** Renders the application header with navigation controls, dynamic titles, tabs, action buttons, and 404 support. */
 export function AppHeader({
   title,
   showMembersButton = false,
@@ -50,6 +52,7 @@ export function AppHeader({
   isSettings = false,
   isLegalImprint = false,
   isLegalPrivacy = false,
+  isNotFound = false,
 }: AppHeaderProps) {
   const { isNavOpen, toggleNav, toggleMembers } = useSidebarStore();
 
@@ -62,7 +65,8 @@ export function AppHeader({
     !!server ||
     showFriendsTabs ||
     isSettings ||
-    isLegalView;
+    isLegalView ||
+    isNotFound;
 
   return (
     <div
@@ -86,6 +90,16 @@ export function AppHeader({
             <PanelLeftOpen className="w-5 h-5" />
           )}
         </button>
+
+        {/* 404 Not Found Header Title */}
+        {isNotFound && (
+          <div className="flex items-center gap-1.5 ml-1 min-w-0">
+            <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+            <h1 className="font-bold text-white text-base truncate">
+              Not Found
+            </h1>
+          </div>
+        )}
 
         {/* Settings View Header Title */}
         {isSettings && (
@@ -116,7 +130,7 @@ export function AppHeader({
         )}
 
         {/* Dynamic Channel Title */}
-        {!isSettings && !isLegalView && title && (
+        {!isSettings && !isLegalView && !isNotFound && title && (
           <div className="flex items-center gap-1.5 ml-1 min-w-0">
             <Hash className="w-4 h-4 text-muted shrink-0" />
             <h1 className="font-bold text-white text-base truncate">{title}</h1>
@@ -126,6 +140,7 @@ export function AppHeader({
         {/* Friends Header Component */}
         {!isSettings &&
           !isLegalView &&
+          !isNotFound &&
           showFriendsTabs &&
           setActiveTab &&
           activeTab && (
