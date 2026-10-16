@@ -237,6 +237,11 @@ export function ChatItem({
               className="font-semibold text-white text-sm hover:underline cursor-pointer truncate focus:outline-none text-left"
             >
               {fullName}
+              {isOwner && (
+                <span className="ml-1 text-xs text-muted font-normal">
+                  (you)
+                </span>
+              )}
             </button>
 
             {isProfileOpen && (
