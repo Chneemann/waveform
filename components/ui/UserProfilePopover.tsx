@@ -1,6 +1,6 @@
 /**
  * @file components/ui/UserProfilePopover.tsx
- * @description User profile popover component displaying user details, email, and interactive options to message or add them as a friend.
+ * @description User profile popover component displaying user details, status, self-indicator, and interactive options to message or add as a friend.
  */
 
 "use client";
@@ -100,6 +100,9 @@ export function UserProfilePopover({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate leading-tight">
             {user.username}
+            {isSelf && (
+              <span className="ml-1 text-xs text-muted font-normal">(you)</span>
+            )}
           </p>
           <p className="text-xs text-muted truncate leading-tight font-medium capitalize">
             {user.status.toLowerCase()}
